@@ -1,0 +1,21 @@
+
+/* Исправление контраста и видимости текста */
+body, input, textarea, select {
+    color: #f0f0f0 !important;
+    background-color: #1b1b1b !important;
+}
+input::placeholder, textarea::placeholder {
+    color: #bbb !important;
+}
+.admin-panel, .booking-form, .calculator, .messages {
+    background-color: #1b1b1b !important;
+    color: #f0f0f0 !important;
+}
+button {
+    color: #fff !important;
+}
+.master-photo img {
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+}

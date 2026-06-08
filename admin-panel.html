@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+       
+        .admin-layout {
+            display: flex;
+            min-height: 80vh;
+        }
+        
+        .admin-sidebar {
+            width: 250px;
+            background: var(--dark);
+            color: white;
+            padding: 2rem 1rem;
+            flex-shrink: 0;
+        }
+        
+        .admin-content {
+            flex: 1;
+            padding: 2rem;
+            background: #f9f9f9;
+            min-height: 600px;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-user-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-menu {
+            list-style: none;
+        }
+        
+        .admin-menu li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-menu a {
+            display: block;
+            padding: 0.8rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .admin-menu a:hover,
+        .admin-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+        
+        table {
+            width: 100%;
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dfe5e0;
+        }
+        
+        th {
+            background: var(--light);
+            font-weight: 600;
+        }
+        
+        .status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-new {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status-confirmed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .admin-section {
+            display: none;
+        }
+        
+        .admin-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .table-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            min-height: 32px;
+        }
+        
+        .table-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-confirm {
+            background: #7a9b8d;
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: #9a6a6a;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #7a97a8;
+            color: white;
+        }
+        
+        .btn-notify {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #dfe5e0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #667171;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #7a9b8d;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .notification.error {
+            background: #9a6a6a;
+        }
+        
+        .notification.info {
+            background: #7a97a8;
+        }
+    
+        /* FIX V5: читаемость таблиц отчётов и сообщений */
+        #messagesTable table, #reportsTable table {
+            background: #fff !important;
+            color: #141414 !important;
+        }
+        #messagesTable th, #reportsTable th {
+            background: #1a1113 !important;
+            color: #fff !important;
+        }
+        #messagesTable td, #reportsTable td {
+            color: #21191b !important;
+            background: #fff !important;
+        }
+        #messagesTable tr:nth-child(even) td, #reportsTable tr:nth-child(even) td {
+            background: #faf7f7 !important;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1>ЭЛЕГАНТ</h1>
+                <p>Административная панель</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> На сайт</a></li>
+                <li><a href="#" id="logoutLink" class="btn" style="background: #9a6a6a;">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="admin-layout">
+        <!-- Боковая панель -->
+        <aside class="admin-sidebar">
+            <div class="admin-user">
+                <div class="admin-user-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;" id="adminName">Администратор</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin: 0;">Салон "Элегант"</p>
+                </div>
+            </div>
+            
+            <ul class="admin-menu">
+                <li><a href="#" class="active nav-link" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Дашборд
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="bookings">
+                    <i class="fas fa-calendar"></i> Записи
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="services">
+                    <i class="fas fa-scissors"></i> Услуги
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="masters">
+                    <i class="fas fa-users"></i> Мастера
+                </a></li>
+                
+                <li><a href="#" class="nav-link" data-section="messages">
+                    <i class="fas fa-envelope"></i> Сообщения
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="reports">
+                    <i class="fas fa-chart-line"></i> Финансовые отчёты
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="settings">
+                    <i class="fas fa-cog"></i> Настройки
+                </a></li>
+            </ul>
+        </aside>
+        
+        <!-- Основной контент -->
+        <div class="admin-content">
+            <!-- Дашборд -->
+            <div id="dashboard" class="admin-section active">
+                <h2 style="color: #1a1a1a; margin-bottom: 2rem;">
+                    <i class="fas fa-tachometer-alt"></i> Обзор системы
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-plus" style="font-size: 2rem; color: var(--primary);"></i>
+                        <div class="stat-value" id="statNewBookings">0</div>
+                        <p>Новые заявки</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-scissors" style="font-size: 2rem; color: var(--primary);"></i>
+                        <div class="stat-value" id="statTotalServices">0</div>
+                        <p>Услуг</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-users" style="font-size: 2rem; color: var(--primary);"></i>
+                        <div class="stat-value" id="statActiveMasters">0</div>
+                        <p>Активных мастеров</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-day" style="font-size: 2rem; color: var(--primary);"></i>
+                        <div class="stat-value" id="statTodayBookings">0</div>
+                        <p>Записей сегодня</p>
+                    </div>
+                </div>
+                
+                <!-- Кнопки обновления -->
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button id="refreshAllBtn" class="btn">
+                        <i class="fas fa-sync-alt"></i> Обновить все данные
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Записи -->
+            <div id="bookings" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;">
+                        <i class="fas fa-calendar"></i> Управление записями
+                    </h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="exportBookingsBtn" class="btn">
+                            <i class="fas fa-download"></i> Экспорт
+                        </button>
+                        <button id="refreshBookingsBtn" class="btn">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Фильтры -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <button class="btn booking-filter-btn" data-status="all" style="background: var(--primary);">
+                        Все записи
+                    </button>
+                    <button class="btn booking-filter-btn" data-status="new" style="background: #a77c56;">
+                        Новые
+                    </button>
+                    <button class="btn booking-filter-btn" data-status="confirmed" style="background: #7a9b8d;">
+                        Подтвержденные
+                    </button>
+                    <button class="btn booking-filter-btn" data-status="cancelled" style="background: #9a6a6a;">
+                        Отмененные
+                    </button>
+                </div>
+                
+                <div id="bookingsTable">
+                    <!-- Таблица загружается через JS -->
+                </div>
+            </div>
+            
+            <!-- Услуги -->
+            <div id="services" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;">
+                        <i class="fas fa-scissors"></i> Управление услугами
+                    </h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="addServiceBtn" class="btn">
+                            <i class="fas fa-plus"></i> Добавить услугу
+                        </button>
+                        <button id="refreshServicesBtn" class="btn">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="servicesTable">
+                    <!-- Таблица услуг загружается через JS -->
+                </div>
+            </div>
+            
+            <!-- Мастера -->
+            <div id="masters" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;">
+                        <i class="fas fa-users"></i> Управление мастерами
+                    </h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="addMasterBtn" class="btn">
+                            <i class="fas fa-user-plus"></i> Добавить мастера
+                        </button>
+                        <button id="refreshMastersBtn" class="btn">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="mastersTable">
+                    <!-- Таблица мастеров загружается через JS -->
+                </div>
+            </div>
+            
+
+            <!-- Сообщения -->
+            <div id="messages" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;"><i class="fas fa-envelope"></i> Диалоги с клиентами</h2>
+                    <button id="refreshMessagesBtn" class="btn"><i class="fas fa-sync-alt"></i> Обновить</button>
+                </div>
+                <div id="messagesTable"></div>
+            </div>
+
+            <!-- Финансовые отчёты -->
+            <div id="reports" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;"><i class="fas fa-chart-line"></i> Финансовые отчёты</h2>
+                    <button id="refreshReportsBtn" class="btn"><i class="fas fa-sync-alt"></i> Обновить</button>
+                </div>
+                <div class="stats-grid" id="reportCards"></div>
+                <div id="reportsTable" style="margin-top:1.5rem;"></div>
+            </div>
+
+            <!-- Настройки -->
+
+            <div id="settings" class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="color: #1a1a1a; margin: 0;">
+                        <i class="fas fa-cog"></i> Настройки салона
+                    </h2>
+                    <button id="refreshSettingsBtn" class="btn">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                </div>
+                
+                <div class="form-container" style="max-width: 600px;">
+                    <form id="adminSettingsForm">
+                        <div class="form-group">
+                            <label>Название салона</label>
+                            <input type="text" id="salonName" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" id="salonPhone" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Адрес</label>
+                            <input type="text" id="salonAddress" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>График работы</label>
+                            <textarea id="workingHours" class="form-control" rows="3" required></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                            <button type="submit" class="btn">
+                                <i class="fas fa-save"></i> Сохранить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="serviceModalTitle"><i class="fas fa-plus"></i> Добавить новую услугу</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    <input type="hidden" id="serviceId">
+                    <div class="form-group">
+                        <label>Название услуги *</label>
+                        <input type="text" id="serviceName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Категория *</label>
+                        <input type="text" id="serviceCategory" class="form-control" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Цена (₽) *</label>
+                            <input type="number" id="servicePrice" class="form-control" required min="0" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Длительность (мин)</label>
+                            <input type="number" id="serviceDuration" class="form-control" value="60" min="15" step="15">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="serviceDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn" style="flex: 1;">
+                            <i class="fas fa-save"></i> Сохранить
+                        </button>
+                        <button type="button" class="btn close-modal-btn" style="background: #667171; flex: 1;">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="masterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="masterModalTitle"><i class="fas fa-user-plus"></i> Добавить нового мастера</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="masterForm">
+                    <input type="hidden" id="masterId">
+                    <div class="form-group">
+                        <label>Имя мастера *</label>
+                        <input type="text" id="masterName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Специализация *</label>
+                        <input type="text" id="masterSpecialization" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Опыт (лет) *</label>
+                            <input type="number" id="masterExperience" class="form-control" required min="0" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Фото (имя файла)</label>
+                            <input type="text" id="masterPhoto" class="form-control" placeholder="master1.jpg">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>О мастере</label>
+                        <textarea id="masterBio" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: .75rem;">
+                        <label style="display:flex; align-items:center; gap:.6rem;">
+                            <input type="checkbox" id="masterIsActive" checked>
+                            Мастер активен (показывать на сайте)
+                        </label>
+                        <small style="color:#667171;">Если выключить — мастер пропадёт на сайте и в калькуляторе, но в админке останется.</small>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn" style="flex: 1;">
+                            <i class="fas fa-save"></i> Сохранить
+                        </button>
+                        <button type="button" class="btn close-modal-btn" style="background: #667171; flex: 1;">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "Элегант". </p>
+        <p>Только для авторизованного персонала</p>
+    </footer>
+
+    <!-- Подключаем скрипты -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+    // Инициализация после загрузки страницы
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Проверяем авторизацию
+        if (!await salonAPI.checkAdminAuth()) {
+            window.location.href = 'admin-login.html';
+            return;
+        }
+        
+        // Инициализируем админ-панель
+        window.adminPanel = new AdminPanel();
+    });
+    </script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

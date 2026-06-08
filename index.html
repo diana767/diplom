@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Салон красоты "Элегант" | Главная</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+                <li><a href="admin-login.html" class="btn btn-admin"><i class="fas fa-user-shield"></i> Админ</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Основной контент -->
+    <main>
+        <!-- Герой секция -->
+        <section class="hero">
+            <h1>Искусство красоты и гармонии</h1>
+            <p>Профессиональные услуги от лучших мастеров в атмосфере комфорта и роскоши</p>
+            <div class="hero-bullets"><span>Hair color</span><span>Nail art</span><span>Makeup</span><span>Lashes</span></div>
+            <a href="book.html" class="btn" style="margin-top:1.4rem;">
+                <i class="fas fa-gem"></i> Забронировать визит
+            </a>
+        </section>
+        
+        <!-- Промо-блок калькулятора -->
+        <section style="max-width: 900px; margin: 2rem auto; padding: 1rem;">
+            <div style="background: linear-gradient(135deg, rgba(111,135,132,.10), rgba(214,195,198,.16)); 
+                        border-radius: 20px; padding: 2rem; text-align: center; border: 2px dashed var(--primary);">
+                <h2 style="color: #fff; margin-bottom: 1rem;">
+                    <i class="fas fa-bolt" style="color: var(--accent);"></i> 
+                    Успей записаться со скидкой!
+                </h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    Создайте персональный пакет услуг и получите скидку до <strong style="color: var(--secondary);">15%</strong>
+                </p>
+                
+                <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding: 1rem; border-radius: 12px; min-width: 200px;">
+                        <i class="fas fa-check-circle" style="color: var(--secondary); font-size: 2rem;"></i>
+                        <p>Подбор услуг по вашим пожеланиям</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding: 1rem; border-radius: 12px; min-width: 200px;">
+                        <i class="fas fa-percentage" style="color: var(--secondary); font-size: 2rem;"></i>
+                        <p>Автоматическая скидка на пакет</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding: 1rem; border-radius: 12px; min-width: 200px;">
+                        <i class="fas fa-clock" style="color: var(--secondary); font-size: 2rem;"></i>
+                        <p>Быстрая запись в 1 клик</p>
+                    </div>
+                </div>
+                
+                <a href="beauty-calculator.html" class="btn" style="margin-top: 2rem; padding: 1rem 2rem; font-size: 1.1rem; 
+                       background: linear-gradient(135deg, #8eaeb0, #6f8784); color: white; font-weight: bold;">
+                    <i class="fas fa-calculator"></i> Рассчитать мой пакет
+                </a>
+                
+                <p style="margin-top: 1rem; color: var(--gray); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> Скидка применяется при записи на полный пакет
+                </p>
+            </div>
+        </section>
+
+        <!-- Слайдер цитат -->
+        <section class="quote-slider">
+            <div class="quote-container">
+                <p class="quote">"Красота начинается с решения быть собой"</p>
+                <p class="author">— Коко Шанель</p>
+            </div>
+        </section>
+
+        <!-- Преимущества -->
+        <section class="features">
+            <h2 style="text-align: center; margin: 2rem 0; color: var(--primary);">Почему выбирают нас</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-award" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+                    <h3>Экспертный подход</h3>
+                    <p>Все специалисты имеют международные сертификаты и регулярно повышают квалификацию</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-star" style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                    <h3>Премиум материалы</h3>
+                    <p>Используем только профессиональную косметику и оборудование премиум-класса</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-heart" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Индивидуальный подход</h3>
+                    <p>Персональные программы ухода и рекомендации от экспертов</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Популярные услуги -->
+        <section class="popular-services">
+            <h2 style="text-align: center; margin: 3rem 0 2rem; color: var(--primary);">Популярные услуги</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <i class="fas fa-cut" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Стрижка и укладка</h3>
+                    <p>Современные техники стрижки с учетом индивидуальных особенностей</p>
+                    <div class="price">от 1 800 ₽</div>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-hand-sparkles" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Премиум маникюр</h3>
+                    <p>Аппаратный маникюр с покрытием гель-лаком и дизайном</p>
+                    <div class="price">от 2 200 ₽</div>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-eye" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Наращивание ресниц</h3>
+                    <p>Классическое и объемное наращивание с консультацией</p>
+                    <div class="price">от 3 500 ₽</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="services.html" class="btn">Все услуги →</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Подвал -->
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>".</p>
+        <p><span class="js-salon-address">г. Екатеринбург, ул. Ленина, 50</span> | <span class="js-salon-phone">+7 (999) 123-45-67</span> | info@elegant-beauty.ru</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Инициализация слайдера цитат
+        initQuoteSlider();
+        
+        // Анимация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.feature-card, .service-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animated');
+            });
+        });
+    </script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

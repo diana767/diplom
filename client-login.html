@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+.form-container{max-width:980px;margin:2rem auto;padding:2rem}
+.login-prompt i{font-size:4rem;color:var(--secondary);margin-bottom:1rem}
+.login-message{display:none;padding:.9rem 1rem;border-radius:14px;margin-bottom:1rem}
+.login-message.error{display:block;background:rgba(207,63,78,.12);border:1px solid rgba(207,63,78,.22);color:#ffd1d6}
+.login-message.success{display:block;background:rgba(47,158,111,.12);border:1px solid rgba(47,158,111,.22);color:#ccffe6}
+</style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="active btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 2rem;">
+                <i class="fas fa-user-circle"></i> Личный кабинет
+            </h1>
+            
+            <!-- Блок входа по номеру телефона с SMS -->
+            <div id="loginSection">
+                <div class="login-prompt">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h2 style="color: #fff; margin-bottom: 1rem;">Вход в личный кабинет</h2>
+                    
+                    <!-- Шаг 1: Ввод номера -->
+                    <div id="stepPhone" class="sms-section">
+                        <p style="color: var(--text-muted); margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            Введите номер телефона, который вы указывали при записи в салон. Мы отправим SMS с кодом подтверждения.
+                        </p>
+                        
+                        <div style="max-width: 400px; margin: 0 auto;">
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> Номер телефона *</label>
+                                <input type="tel" id="clientPhone" class="form-control" 
+                                       placeholder="+7 (999) 123-45-67" required>
+                            </div>
+                            
+                            <button id="sendCodeBtn" class="btn" style="width: 100%; padding: 1rem;">
+                                <i class="fas fa-paper-plane"></i> Отправить код
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Шаг 2: Ввод кода из SMS -->
+                    <div id="stepCode" class="sms-section" style="display: none;">
+                        <div style="max-width: 400px; margin: 0 auto;">
+                            <div style="margin-bottom: 1.5rem;">
+                                <i class="fas fa-envelope" style="font-size: 2rem; color: var(--primary);"></i>
+                                <h3 style="color: #fff; margin: 1rem 0;">Введите код из SMS</h3>
+                                <p style="color: var(--text-muted);">
+                                    Мы отправили код на номер <strong id="phoneDisplay"></strong>
+                                </p>
+                                <div id="demoCodeBox" style="display:none; margin-top:1rem; background:#f2efee; border:1px solid #d8cdd1; color:#2f3b3d; padding:0.9rem 1rem; border-radius:12px;">
+                                    <div style="font-size:0.85rem; color:#66716f; margin-bottom:0.35rem;">Демонстрационный код для локального проекта</div>
+                                    <div id="demoCodeValue" style="font-size:1.5rem; font-weight:700; letter-spacing:0.2rem;">000000</div>
+                                </div>
+
+                            </div>
+                            
+                            <div class="code-input-group">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code1">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code2">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code3">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code4">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code5">
+                                <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]*" id="code6">
+                            </div>
+                            
+                            <button id="verifyCodeBtn" class="btn" style="width: 100%; padding: 1rem; margin-top: 1rem;">
+                                <i class="fas fa-check-circle"></i> Подтвердить вход
+                            </button>
+                            
+                            <button id="backToPhoneBtn" class="resend-btn" style="margin-top: 1rem; display: block; width: 100%;">
+                                <i class="fas fa-arrow-left"></i> Изменить номер телефона
+                            </button>
+                            
+                            <button id="resendCodeBtn" class="resend-btn" style="margin-top: 0.5rem;" disabled>
+                                Отправить код повторно через <span id="resendTimer">60</span> сек
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Единый блок ошибки -->
+                    <div id="loginError" style="color: #9a6a6a; margin-top: 1rem; display: none;">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Основной контент личного кабинета (скрыт до входа) -->
+            <div id="clientContent" style="display: none;">
+                <!-- Информация о клиенте -->
+                <div id="clientInfo" class="client-info">
+                    <div>
+                        <i class="fas fa-user-circle" style="font-size: 2rem;"></i>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.1rem;" id="welcomeMessage">Добро пожаловать!</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;" id="clientPhoneDisplay"></p>
+                        </div>
+                    </div>
+                    <button id="logoutBtn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+                
+                <!-- Вкладки -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="my-bookings">
+                        <i class="fas fa-calendar-alt"></i> Мои записи
+                    </button>
+                    <button class="tab" data-tab="notifications">
+                        <i class="fas fa-bell"></i> Уведомления
+                        <span id="notificationCount" style="background: var(--primary); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-left: 0.5rem; display: none;"></span>
+                    </button>
+
+                    <button class="tab" data-tab="chat">
+                        <i class="fas fa-comments"></i> Чат с администратором
+                    </button>
+                    <button class="tab" data-tab="profile">
+                        <i class="fas fa-user"></i> Профиль
+                    </button>
+                </div>
+                
+                <!-- Мои записи -->
+                <div id="my-bookings" class="tab-content active">
+                    <h2 style="color: #fff; margin-bottom: 1.5rem;">
+                        <i class="fas fa-calendar-check"></i> Мои записи
+                    </h2>
+                    <div id="myBookingsList"></div>
+                </div>
+                
+                <!-- Уведомления -->
+                <div id="notifications" class="tab-content">
+                    <h2 style="color: #fff; margin-bottom: 1.5rem;">
+                        <i class="fas fa-bell"></i> Мои уведомления
+                    </h2>
+                    <div id="notificationsList"></div>
+                </div>
+                
+
+                <!-- Чат с администратором -->
+                <div id="chat" class="tab-content">
+                    <h2 style="color: #fff; margin-bottom: 1.5rem;">
+                        <i class="fas fa-comments"></i> Чат с администратором
+                    </h2>
+                    <div class="client-chat-panel soft-fade-in">
+                        <div class="client-chat-note">
+                            <i class="fas fa-lock"></i>
+                            <span>Чат доступен только после входа в личный кабинет. Администратор видит ваши сообщения в разделе «Сообщения».</span>
+                        </div>
+                        <div id="clientChatMessages" class="client-chat-messages">
+                            <div class="chat-empty"><i class="fas fa-comment-dots"></i><br>Загрузка переписки...</div>
+                        </div>
+                        <div class="client-chat-send">
+                            <input id="clientChatInput" class="form-control" type="text" placeholder="Напишите сообщение администратору...">
+                            <button id="clientChatSendBtn" class="btn" type="button"><i class="fas fa-paper-plane"></i> Отправить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Профиль -->
+                <div id="profile" class="tab-content">
+                    <h2 style="color: #fff; margin-bottom: 1.5rem;">
+                        <i class="fas fa-user-cog"></i> Мой профиль
+                    </h2>
+                    <div id="profileFormContainer"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>". Все права защищены.</p>
+        <p>г. Екатеринбург, ул. Ленина, 50 | +7 (999) 123-45-67</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/client.js"></script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

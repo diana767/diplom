@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Услуги | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html" class="active"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 style="text-align: center; margin: 2rem 0; color: var(--primary);">Наши услуги</h1>
+        
+        <!-- Фильтры по категориям -->
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div id="categoryFilters" style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            </div>
+        </div>
+
+        <div id="servicesContainer">
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>". </p>
+        <p>г. Екатеринбург, ул. Ленина, 50 | +7 (999) 123-45-67</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

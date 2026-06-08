@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мастера | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+.master-card {padding: 1.5rem;}
+.master-card:hover {box-shadow: 0 22px 45px rgba(0,0,0,.45);} 
+.master-photo i {width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#29090f,#6b0d1f);color:white;font-size:4rem;}
+.master-rating{color:#ffb3b8;font-size:.9rem;margin-bottom:.6rem}
+.portfolio-title{margin-top:1rem;color:#fff;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em}
+</style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html" class="active"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 style="text-align: center; margin: 2rem 0; color: var(--primary);">Наша команда мастеров</h1>
+        <p style="text-align: center; margin-bottom: 1rem; max-width: 800px; margin-left: auto; margin-right: auto; color: var(--gray);">
+            Встречайте нашу команду профессионалов — талантливых мастеров, которые создают настоящие произведения искусства красоты. 
+            Каждый специалист обладает уникальным подходом и многолетним опытом.
+        </p>
+        
+        <div id="mastersContainer" class="masters-grid">
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>". </p>
+        <p>г. Екатеринбург, ул. Ленина, 50 | +7 (999) 123-45-67</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

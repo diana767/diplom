@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<script src="js/database.js"></script>
+<script src="js/main.js"></script>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html" class="active"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 style="text-align: center; margin: 2rem 0; color: var(--primary);">Контакты</h1>
+        
+        <div class="services-grid">
+            <div class="service-card" style="text-align: center;">
+                <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Адрес</h3>
+                <p>г. Екатеринбург</p>
+                <p class="js-salon-address">ул. Ленина, 50</p>
+                <p>Вход со стороны двора</p>
+            </div>
+            
+            <div class="service-card" style="text-align: center;">
+                <i class="fas fa-clock" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>График работы</h3>
+                <p><strong>Пн-Пт:</strong> 9:00 - 21:00</p>
+                <p><strong>Сб-Вс:</strong> 10:00 - 20:00</p>
+            </div>
+            
+            <div class="service-card" style="text-align: center;">
+                <i class="fas fa-phone" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Телефоны</h3>
+                <p><strong>Запись:</strong> <span class="js-salon-phone">+7 (999) 123-45-67</span></p>
+                <p><strong>Администратор:</strong> +7 (999) 987-65-43</p>
+            </div>
+            
+            <div class="service-card" style="text-align: center;">
+                <i class="fas fa-envelope" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Почта</h3>
+                <p><strong>Для записей:</strong></p>
+                <p>booking@elegant-beauty.ru</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 3rem 0;">
+            <h2 style="color: #fff; margin-bottom: 1rem;">Как добраться</h2>
+            <div style="width:100%; height:300px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 2px solid rgba(138,43,226,.15);">
+                <iframe title="Карта" src="https://www.openstreetmap.org/export/embed.html?bbox=60.600%2C56.829%2C60.625%2C56.841&layer=mapnik&marker=56.835%2C60.612" style="border:0; width:100%; height:100%;" loading="lazy"></iframe>
+            </div>
+            <p style="margin-top: .75rem; color: var(--gray);">
+                3 минуты от метро "Площадь 1905 года"<br>
+                Остановка "Центральный парк"<br>
+                <a href="https://www.openstreetmap.org/?mlat=56.835&mlon=60.612#map=17/56.835/60.612" target="_blank" rel="noopener" style="color: #fff; font-weight: 700;">Открыть карту в новом окне</a>
+            </p>
+        </div>
+
+        <div class="form-container">
+            <h2 style="color: var(--text-light); text-align: center; margin-bottom: 2rem;">Обратная связь</h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Ваше имя</label>
+                    <input type="text" id="contact-name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Телефон</label>
+                    <input type="tel" id="contact-phone" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="contact-email" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Сообщение</label>
+                    <textarea id="contact-message" class="form-control" rows="5" required></textarea>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 1rem;">
+                    <i class="fas fa-paper-plane"></i> Отправить и перейти в кабинет
+                </button>
+            </form>
+            <div id="contact-message-result" style="margin-top: 1rem;"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>". </p>
+        <p><span class="js-salon-address">г. Екатеринбург, ул. Ленина, 50</span> | <span class="js-salon-phone">+7 (999) 123-45-67</span></p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+
+    
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const resultDiv = document.getElementById('contact-message-result');
+            const payload = {
+                name: document.getElementById('contact-name').value.trim(),
+                phone: document.getElementById('contact-phone').value.trim(),
+                email: document.getElementById('contact-email').value.trim(),
+                message: document.getElementById('contact-message').value.trim()
+            };
+            try {
+                const response = await salonAPI.request('php/api/save_contact_message.php', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                if (response.success) {
+                    localStorage.setItem('salon_pending_chat_contact_id', response.contact_id || response.conversation_id || '');
+                    localStorage.setItem('salon_pending_chat_phone', payload.phone);
+                    localStorage.setItem('salon_pending_chat_phone_clean', payload.phone.replace(/\D/g, ''));
+                    localStorage.setItem('salon_pending_chat_name', payload.name);
+                    resultDiv.innerHTML = `<div class="notification" style="position: static; animation: none; background: #2d6a4f;"><p style="color: white; margin: 0;"><i class="fas fa-check-circle"></i> Сообщение отправлено! Сейчас откроется личный кабинет для продолжения чата.</p></div>`;
+                    this.reset();
+                    setTimeout(() => { window.location.href = 'client-login.html?chat=1'; }, 900);
+                } else {
+                    throw new Error(response.error || 'Не удалось отправить сообщение');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="notification" style="position: static; animation: none; background: #8b1e2d;"><p style="color: white; margin: 0;"><i class="fas fa-exclamation-circle"></i> ${error.message}</p></div>`;
+            }
+        });
+    </script>
+
+    <script src="js/contact-chat.js"></script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

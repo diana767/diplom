@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор красоты | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .calculator-steps {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .calculator-step {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .calculator-step.active {
+            display: block;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .option-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .option-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(111,135,132,.10);
+        }
+        
+        .option-card.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(142,174,176,.10), rgba(214,195,198,.14));
+            box-shadow: 0 10px 20px rgba(185,15,47,.18);
+        }
+        
+        .option-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 3rem;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .package-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .total-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: var(--accent);
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #171717; color:#fff;
+            border-radius: 3px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .savings-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--dark);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html" class="active"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="calculator-steps">
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 1rem;">
+                <i class="fas fa-gem"></i> Калькулятор красоты
+            </h1>
+            <p style="text-align: center; color: var(--gray); margin-bottom: 2rem;">
+                Ответьте на вопросы и получите персональный пакет услуг со скидкой
+            </p>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- Шаг 1: Выбор пола -->
+            <div class="calculator-step active" id="step1">
+                <h2><span class="step-number">1</span> Выберите ваш пол</h2>
+                <p style="text-align: center; color: var(--gray); margin-bottom: 2rem;">
+                    Это поможет подобрать подходящие услуги
+                </p>
+                
+                <div class="options-grid">
+                    <div class="option-card gender-option" data-value="female">
+                        <div class="gender-icon" style="color: #b77f90;">
+                            <i class="fas fa-venus"></i>
+                        </div>
+                        <h3>Женщина</h3>
+                        <p>Полный спектр услуг для женщин</p>
+                    </div>
+                    
+                    <div class="option-card gender-option" data-value="male">
+                        <div class="gender-icon" style="color: var(--secondary);">
+                            <i class="fas fa-mars"></i>
+                        </div>
+                        <h3>Мужчина</h3>
+                        <p>Услуги для мужчин</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Шаг 2: Цель визита -->
+            <div class="calculator-step" id="step2">
+                <h2><span class="step-number">2</span> Какая цель визита?</h2>
+                
+                <div class="options-grid" id="goalOptions">
+                   
+                </div>
+            </div>
+            
+            <!-- Шаг 3: Бюджет -->
+            <div class="calculator-step" id="step3">
+                <h2><span class="step-number">3</span> Какой бюджет?</h2>
+                
+                <div class="options-grid">
+                    <div class="option-card" data-value="3000">
+                        <h3>Базовый</h3>
+                        <p>до 3 000 ₽</p>
+                        <p><small>1-2 базовые услуги</small></p>
+                    </div>
+                    
+                    <div class="option-card" data-value="6000">
+                        <h3>Стандарт</h3>
+                        <p>3 000 - 6 000 ₽</p>
+                        <p><small>Несколько процедур</small></p>
+                    </div>
+                    
+                    <div class="option-card" data-value="10000">
+                        <h3>Премиум</h3>
+                        <p>6 000 - 10 000 ₽</p>
+                        <p><small>Полный комплекс</small></p>
+                    </div>
+                    
+                    <div class="option-card" data-value="15000">
+                        <h3>Люкс</h3>
+                        <p>от 10 000 ₽</p>
+                        <p><small>Все включено</small></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Результат -->
+            <div class="calculator-step" id="step4">
+                <div class="result-card">
+                    <h2><i class="fas fa-gift"></i> Ваш персональный пакет</h2>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.2); padding: 1rem; border-radius: var(--radius); margin: 1.5rem 0;">
+                        <h3 id="packageTitle" style="margin: 0 0 0.5rem 0;">Пакет "Премиум"</h3>
+                        <p id="packageDescription" style="margin: 0; opacity: 0.9;">Идеально подобранный набор услуг</p>
+                    </div>
+                    
+                    <div class="package-details" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left;">
+                        <div id="packageList" style="margin-bottom: 1.5rem;">
+                        </div>
+                        
+                        <div style="border-top: 2px dashed rgba(255, 255, 255, 0.3); padding-top: 1rem;">
+                            <div class="package-item" style="border-bottom: none;">
+                                <span>Итого:</span>
+                                <span id="originalTotalPrice" style="text-decoration: line-through; color: rgba(255,255,255,0.7);">0 ₽</span>
+                            </div>
+                            <div class="package-item" style="border-bottom: none; color: var(--accent);">
+                                <span>Скидка <span id="discountPercent">0</span>%:</span>
+                                <span>-<span id="discountAmount">0</span> ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-price" id="finalPrice">
+                        0 ₽
+                    </div>
+                    
+                    <div id="savingsInfo" style="margin: 1rem 0;">
+                    </div>
+                    
+                    <button id="bookPackageBtn" class="btn btn-large" style="background: var(--accent); color: var(--dark);">
+                        <i class="fas fa-calendar-check"></i> Записаться со скидкой
+                    </button>
+                    
+                    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
+                        <i class="fas fa-info-circle"></i> Скидка применяется ко всем услугам в пакете
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button id="prevBtn" class="btn" style="background: var(--gray); display: none;">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+                
+                <button id="nextBtn" class="btn">
+                    Далее <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>".</p>
+        <p>г. Екатеринбург, ул. Ленина, 50 | +7 (999) 123-45-67</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

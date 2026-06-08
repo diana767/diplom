@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход для администратора | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1>ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="admin-login.html" class="active"><i class="fas fa-user-shield"></i> Админ</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="login-wrapper">
+            <div class="login-box">
+                <div class="login-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                
+                <h2 style="color: #fff; margin-bottom: 0.5rem;">Административная панель</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Вход для сотрудников</p>
+                
+                <div id="loginMessage" class="login-message"></div>
+                
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Логин</label>
+                        <input type="text" id="username" class="form-control" required
+                               placeholder="Введите логин">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Пароль</label>
+                        <input type="password" id="password" class="form-control" required
+                               placeholder="Введите пароль">
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 1rem;">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                </form>
+                
+                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #dfe5e0;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        <strong>Тестовые данные:</strong><br>
+                        Логин: <code>admin</code><br>
+                        Пароль: <code>admin123</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2026 Салон красоты "Элегант". Все права защищены.</p>
+        <p>Административная система | 2026</p>
+    </footer>
+    
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        // Обработчик формы входа
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('loginMessage');
+            
+            messageDiv.style.display = 'none';
+            
+            if (!username || !password) {
+                messageDiv.textContent = 'Заполните все поля';
+                messageDiv.className = 'login-message error';
+                messageDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await salonAPI.adminLogin(username, password);
+                
+                if (response.success) {
+                    messageDiv.textContent = 'Успешный вход! Перенаправление...';
+                    messageDiv.className = 'login-message success';
+                    messageDiv.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'admin-panel.html';
+                    }, 1000);
+                } else {
+                    messageDiv.textContent = response.error || 'Ошибка входа';
+                    messageDiv.className = 'login-message error';
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Ошибка соединения с сервером';
+                messageDiv.className = 'login-message error';
+                messageDiv.style.display = 'block';
+            }
+        });
+    </script>
+    <script src="js/validation.js"></script>
+</body>
+</html>

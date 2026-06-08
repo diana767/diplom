@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Онлайн-запись | Салон красоты "Элегант"</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .time-slots {
+            margin: 1rem 0;
+        }
+        
+        .time-slot {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #0f0f0f; color:#fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .time-slot:hover {
+            background: #171717; color:#fff;
+            border-color: #ccc;
+        }
+        
+        .time-slot.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .time-slot.disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+            border-color: #dfe5e0;
+        }
+        
+        .time-slots-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #e0e0e0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667171;
+        }
+        
+        .no-slots {
+            text-align: center;
+            padding: 2rem;
+            color: #ff4081;
+            background: #fff5f7;
+            border-radius: 8px;
+        }
+        
+        .time-input-container {
+            position: relative;
+        }
+        
+        .time-input-container input {
+            padding-right: 40px;
+        }
+        
+        .clear-time {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #667171;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .form-error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .form-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .price-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+        
+        .hint-text {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 0.3rem;
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-spa"></i>
+            </div>
+            <div class="logo-text">
+                <h1 class="js-salon-name">ЭЛЕГАНТ</h1>
+                <p>Эстетика ухода и комфорта</p>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+                <li><a href="services.html"><i class="fas fa-scissors"></i> Услуги</a></li>
+                <li><a href="masters.html"><i class="fas fa-users"></i> Мастера</a></li>
+                <li><a href="certificates.html"><i class="fas fa-gift"></i> Сертификаты</a></li>
+                <li><a href="contacts.html"><i class="fas fa-map-marker-alt"></i> Контакты</a></li>
+                <li><a href="beauty-calculator.html"><i class="fas fa-calculator"></i> Калькулятор</a></li>
+                <li><a href="book.html" class="active btn"><i class="fas fa-calendar-check"></i> Запись</a></li>
+                <li><a href="client-login.html" class="btn btn-client"><i class="fas fa-user"></i> Кабинет</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1 style="text-align: center; margin: 2rem 0; color: var(--primary);">Онлайн-запись</h1>
+        
+        <div class="form-container">
+            <form id="booking-form">
+                <h2 style="color: #fff; margin-bottom: 2rem;">Заполните данные для записи</h2>
+
+                <!-- Пакет/скидка из калькулятора -->
+                <div id="packageBanner" style="display:none; margin-bottom: 1.5rem;">
+                    <!-- Заполняется через JS -->
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Ваше имя *</label>
+                    <input type="text" id="client-name" class="form-control" required 
+                           placeholder="Иванова Мария">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Телефон *</label>
+                    <input type="tel" id="phone" class="form-control" required 
+                           placeholder="+7 (999) 123-45-67">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-scissors"></i> Услуга *</label>
+                    <select id="service" class="form-control" required>
+                        <option value="">Выберите услугу...</option>
+                    </select>
+                    <span id="serviceHint" class="hint-text"></span>
+                    <div id="priceDisplay" class="price-display" style="display: none;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie"></i> Мастер</label>
+                    <select id="master" class="form-control">
+                        <option value="">Выберите мастера...</option>
+                        <option value="any">Любой свободный мастер</option>
+                    </select>
+                    <span id="masterHint" class="hint-text"></span>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Желаемая дата *</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> Желаемое время *</label>
+                    <div class="time-input-container">
+                        <input type="text" id="time" class="form-control" required readonly 
+                               placeholder="Нажмите на время ниже">
+                        <button type="button" class="clear-time" onclick="clearSelectedTime()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="time-slots-container" id="timeSlotsContainer" style="display: none;">
+                        <div class="time-slots-grid" id="timeSlotsGrid">
+                        </div>
+                        <div id="timeSlotsInfo" style="margin-top: 1rem; text-align: center; color: #667171; font-size: 0.9rem;">
+                            Выберите удобное время
+                        </div>
+                    </div>
+                </div>
+
+                <div id="validationErrors" class="form-error" style="display: none;"></div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Комментарий</label>
+                    <textarea id="comment" class="form-control" rows="4" 
+                              placeholder="Дополнительные пожелания..."></textarea>
+                </div>
+                
+                <div style="margin: 1.5rem 0; padding: 1rem; background: var(--light); border-radius: var(--radius);">
+                    <h4 style="color: #fff; margin-bottom: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Информация:
+                    </h4>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: var(--gray);">
+                        <li>Запись подтверждается администратором в течение 2 часов</li>
+                        <li>Отмена записи возможна не позднее чем за 24 часа</li>
+                        <li>Опоздание более чем на 15 минут может привести к отмене записи</li>
+                    </ul>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-paper-plane"></i> Записаться
+                </button>
+            </form>
+            
+            <div id="booking-result" style="margin-top: 2rem;"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Салон красоты "<span class="js-salon-name">Элегант</span>". </p>
+        <p>г. Екатеринбург, ул. Ленина, 50 | +7 (999) 123-45-67</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        function clearSelectedTime() {
+            document.getElementById('time').value = '';
+            document.querySelectorAll('.time-slot').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('timeSlotsInfo').textContent = 'Выберите удобное время';
+        }
+    </script>
+    <script src="js/validation.js"></script>
+</body>
+</html>
