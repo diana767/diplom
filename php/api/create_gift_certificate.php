@@ -4,21 +4,14 @@ require_once '../schema_additions.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-function only_digits($value) { return preg_replace('/\D+/', '', (string)$value); }
-function valid_phone($value) { $d = only_digits($value); return strlen($d) >= 10 && strlen($d) <= 15; }
-function luhn_check($number) {
-    $digits = only_digits($number);
-    $len = strlen($digits);
-    if ($len < 13 || $len > 19) return false;
-    $sum = 0;
-    $double = false;
-    for ($i = $len - 1; $i >= 0; $i--) {
-        $n = (int)$digits[$i];
-        if ($double) { $n *= 2; if ($n > 9) $n -= 9; }
-        $sum += $n;
-        $double = !$double;
+function cert_only_digits($value) { return preg_replace('/\D+/', '', (string)$value); }
+function cert_valid_phone($value) { $d = cert_only_digits($value); return strlen($d) >= 10 && strlen($d) <= 15; }
+function cert_text_len($value) { return function_exists('mb_strlen') ? mb_strlen((string)$value, 'UTF-8') : strlen((string)$value); }
+function cert_random_code() {
+    if (function_exists('random_bytes')) {
+        return 'ELG-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
     }
-    return $sum % 10 === 0;
+    return 'ELG-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -40,35 +33,29 @@ try {
 
     if ($amount < 500) throw new Exception('Минимальная сумма сертификата — 500 ₽');
     if ($amount > 200000) throw new Exception('Максимальная сумма сертификата — 200 000 ₽');
-    if (!preg_match('/^[А-Яа-яЁёA-Za-z\s-]{2,60}$/u', $recipientName)) throw new Exception('Укажите корректное имя получателя');
-    if ($senderName !== '' && !preg_match('/^[А-Яа-яЁёA-Za-z\s-]{2,60}$/u', $senderName)) throw new Exception('Укажите корректное имя отправителя');
-    if (!valid_phone($phone)) throw new Exception('Укажите корректный номер телефона');
+    if (!preg_match('/^[А-Яа-яЁёA-Za-z\s-]{2,80}$/u', $recipientName)) throw new Exception('Укажите корректное имя получателя');
+    if ($senderName !== '' && !preg_match('/^[А-Яа-яЁёA-Za-z\s-]{2,80}$/u', $senderName)) throw new Exception('Укажите корректное имя отправителя');
+    if (!cert_valid_phone($phone)) throw new Exception('Укажите корректный номер телефона');
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) throw new Exception('Укажите корректный email');
-    if (mb_strlen($message, 'UTF-8') > 500) throw new Exception('Пожелание слишком длинное');
+    if (cert_text_len($message) > 500) throw new Exception('Пожелание слишком длинное');
 
-    $cardNumber = only_digits($payment['card_number'] ?? '');
-    $cardHolder = trim((string)($payment['card_holder'] ?? ''));
-    $expMonth = (int)($payment['exp_month'] ?? 0);
-    $expYear = (int)($payment['exp_year'] ?? 0);
-    $cvv = only_digits($payment['cvv'] ?? '');
-
-    if (!luhn_check($cardNumber)) throw new Exception('Введите корректный номер карты. Для теста можно использовать 4111 1111 1111 1111');
-    if (!preg_match('/^[А-Яа-яЁёA-Za-z\s-]{2,80}$/u', $cardHolder)) throw new Exception('Укажите имя держателя карты');
-    if ($expMonth < 1 || $expMonth > 12) throw new Exception('Некорректный месяц карты');
-    if ($expYear < (int)date('Y') || $expYear > ((int)date('Y') + 20)) throw new Exception('Некорректный год карты');
-    $lastValidDay = strtotime(sprintf('%04d-%02d-01 +1 month -1 day 23:59:59', $expYear, $expMonth));
-    if ($lastValidDay < time()) throw new Exception('Срок действия карты истёк');
-    if (!preg_match('/^\d{3,4}$/', $cvv)) throw new Exception('CVV должен содержать 3 или 4 цифры');
+    // Учебная демо-оплата: деньги не списываются. Чтобы сертификаты не падали на тестовых данных,
+    // строгая проверка банка заменена на мягкую проверку формата, а пустые поля подставляются демо-значениями.
+    $cardNumber = cert_only_digits($payment['card_number'] ?? '4111111111111111');
+    if ($cardNumber === '') $cardNumber = '4111111111111111';
+    if (strlen($cardNumber) < 12 || strlen($cardNumber) > 19) {
+        throw new Exception('Номер демо-карты должен содержать от 12 до 19 цифр');
+    }
+    $last4 = substr($cardNumber, -4);
 
     $db = new Database();
     ensureProjectAdditions($db);
 
     do {
-        $code = 'ELG-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $code = cert_random_code();
         $check = $db->query("SELECT id FROM gift_certificates WHERE code = '".$db->escape($code)."' LIMIT 1");
     } while ($check && $check->num_rows > 0);
 
-    $last4 = substr($cardNumber, -4);
     $db->query("INSERT INTO gift_certificates (code, amount, recipient_name, sender_name, buyer_phone, buyer_email, card_last4, payment_demo_status, paid_at, message, status, created_at)
                 VALUES ('".$db->escape($code)."', ".number_format($amount, 2, '.', '').", '".$db->escape($recipientName)."', '".$db->escape($senderName)."', '".$db->escape($phone)."', '".$db->escape($email)."', '".$db->escape($last4)."', 'paid_demo', NOW(), '".$db->escape($message)."', 'active', NOW())");
 

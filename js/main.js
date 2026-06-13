@@ -640,7 +640,9 @@ async function updateTimeSlots() {
     const slots = await salonAPI.getAvailableTimeSlots(
       masterId,
       apiDate,
-      serviceSelect.value
+      serviceSelect.value,
+      null,
+      document.getElementById('phone')?.value || localStorage.getItem('client_phone') || null
     );
 
         if (reqId !== window.__tsReqId) return;

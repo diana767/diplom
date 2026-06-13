@@ -17,6 +17,19 @@ function ensureProjectAdditions($db) {
     if ($done) return;
 
 
+    $db->query("CREATE TABLE IF NOT EXISTS clients (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        phone VARCHAR(32) NOT NULL,
+        full_name VARCHAR(120) NOT NULL DEFAULT '',
+        email VARCHAR(190) NULL,
+        birth_date DATE NULL,
+        notes VARCHAR(500) NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_clients_phone (phone)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $db->query("CREATE TABLE IF NOT EXISTS contact_messages (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,

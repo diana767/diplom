@@ -969,3 +969,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 })();
+
+// Редактирование профиля клиента
+(function () {
+    function esc(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    ClientCabinet.prototype.loadProfile = async function(phone) {
+        const container = document.getElementById('profileFormContainer');
+        if (!container) return;
+        container.innerHTML = '<div class="loader"><i class="fas fa-spinner fa-spin"></i> Загрузка профиля...</div>';
+        try {
+            const response = await salonAPI.getClientProfile(phone);
+            if (!response.success) throw new Error(response.error || 'Не удалось загрузить профиль');
+            const p = response.data || {};
+            container.innerHTML = `
+                <form id="clientProfileForm" class="profile-form" style="max-width:650px;background:#fff;padding:1.5rem;border-radius:12px;">
+                    <div class="form-group"><label for="profileFullName">Имя и фамилия</label><input id="profileFullName" class="form-control" maxlength="120" required value="${esc(p.full_name || '')}"></div>
+                    <div class="form-group"><label for="profilePhone">Телефон</label><input id="profilePhone" class="form-control" value="${esc(this.formatPhoneNumber(phone))}" disabled><small>Телефон используется для входа и не изменяется в профиле.</small></div>
+                    <div class="form-group"><label for="profileEmail">Email</label><input id="profileEmail" type="email" class="form-control" maxlength="190" value="${esc(p.email || '')}"></div>
+                    <div class="form-group"><label for="profileBirthDate">Дата рождения</label><input id="profileBirthDate" type="date" class="form-control" value="${esc(p.birth_date || '')}"></div>
+                    <div class="form-group"><label for="profileNotes">Пожелания</label><textarea id="profileNotes" class="form-control" maxlength="500" rows="3">${esc(p.notes || '')}</textarea></div>
+                    <button id="saveClientProfileBtn" type="submit" class="btn"><i class="fas fa-save"></i> Сохранить профиль</button>
+                    <div id="profileSaveMessage" style="margin-top:1rem;"></div>
+                </form>`;
+            document.getElementById('clientProfileForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('saveClientProfileBtn');
+                const msg = document.getElementById('profileSaveMessage');
+                btn.disabled = true;
+                try {
+                    const result = await salonAPI.updateClientProfile({
+                        phone,
+                        full_name: document.getElementById('profileFullName').value.trim(),
+                        email: document.getElementById('profileEmail').value.trim(),
+                        birth_date: document.getElementById('profileBirthDate').value,
+                        notes: document.getElementById('profileNotes').value.trim()
+                    });
+                    msg.innerHTML = `<span style="color:#487864;">${esc(result.message || 'Профиль сохранён')}</span>`;
+                    const welcome = document.getElementById('welcomeMessage');
+                    if (welcome) welcome.textContent = `Добро пожаловать, ${document.getElementById('profileFullName').value.trim()}!`;
+                    await this.refreshBookingsOnly(phone);
+                } catch (error) {
+                    msg.innerHTML = `<span style="color:#9a4f4f;">${esc(error.message || 'Ошибка сохранения')}</span>`;
+                } finally { btn.disabled = false; }
+            });
+        } catch (error) {
+            container.innerHTML = `<div class="booking-item"><p>${esc(error.message)}</p></div>`;
+        }
+    };
+
+    const originalSwitchTabProfile = ClientCabinet.prototype.switchTab;
+    ClientCabinet.prototype.switchTab = function(tabId) {
+        originalSwitchTabProfile.call(this, tabId);
+        if (tabId === 'profile') {
+            const phone = localStorage.getItem('client_phone');
+            if (phone) this.loadProfile(phone);
+        }
+    };
+})();

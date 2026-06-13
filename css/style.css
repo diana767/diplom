@@ -296,3 +296,63 @@ input:invalid, textarea:invalid, select:invalid { border-color: rgba(255,64,129,
 input:valid, textarea:valid, select:valid { border-color: rgba(122,155,141,.45); }
 @keyframes softPulse { 0%,100% { box-shadow: 0 0 0 rgba(255,64,129,0); transform: translateY(0); } 50% { box-shadow: 0 12px 35px rgba(255,64,129,.12); transform: translateY(-2px); } }
 @media (max-width: 700px) { .portfolio-admin-item { grid-template-columns: 72px 1fr; } .portfolio-admin-item button { grid-column: 1 / -1; width: 100%; } .payment-row { grid-template-columns: 1fr; } }
+
+/* FIX 2026-06-08: админ-чат и перенос записи */
+.admin-chat-thread-wrap {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .4rem;
+    align-items: stretch;
+    margin-bottom: .5rem;
+}
+.admin-chat-thread-wrap.unanswered .admin-chat-thread {
+    border-left: 4px solid #d8793f;
+}
+.admin-chat-thread-wrap.answered .admin-chat-thread {
+    border-left: 4px solid #7a9b8d;
+}
+.chat-status {
+    display: inline-block;
+    margin-top: .35rem;
+    padding: .2rem .55rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-style: normal;
+}
+.chat-status.answered {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.chat-status.unanswered {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+.chat-delete-thread,
+.chat-delete-message {
+    border: none;
+    border-radius: 8px;
+    background: #9a6a6a;
+    color: #fff;
+    cursor: pointer;
+    min-width: 34px;
+    padding: .45rem .6rem;
+}
+.chat-delete-thread:hover,
+.chat-delete-message:hover {
+    filter: brightness(.95);
+    transform: translateY(-1px);
+}
+.chat-message-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+}
+.chat-delete-message {
+    padding: .25rem .45rem;
+    min-width: 26px;
+    font-size: .75rem;
+}
+#transferSlotsInfo {
+    color: #2f3033;
+}

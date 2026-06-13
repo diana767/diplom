@@ -451,3 +451,18 @@ ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description)
 INSERT INTO master_portfolio (master_id, image, title, description)
 SELECT id, 'portfolio_hair_1.jpg', 'Результат ухода', 'Демонстрационное фото процедуры' FROM masters WHERE name IN ('Дарья Сергеева')
 ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description);
+
+
+-- Профили клиентов
+CREATE TABLE IF NOT EXISTS clients (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  phone VARCHAR(32) NOT NULL,
+  full_name VARCHAR(120) NOT NULL DEFAULT '',
+  email VARCHAR(190) NULL,
+  birth_date DATE NULL,
+  notes VARCHAR(500) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_clients_phone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

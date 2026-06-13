@@ -1,5 +1,6 @@
 <?php
 require_once '../database.php';
+require_once '../booking_helpers.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -77,6 +78,26 @@ try {
     $service = $db->getService((int)$input['service_id']);
     $newDuration = (int)($service['duration_minutes'] ?? 60);
 
+    $newStartMinutes = timeToMinutesValue($input['desired_time']);
+    $newEndMinutes = $newStartMinutes + $newDuration;
+    $cleanPhoneEsc = $db->escape(substr($phone, -10));
+    $phoneExpr = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(b.phone,'+',''),'(',''),')',''),'-',''),' ','')";
+    $clientSql = "SELECT b.desired_time, COALESCE(s.duration_minutes,60) AS duration_minutes
+                  FROM bookings b LEFT JOIN services s ON s.id=b.service_id
+                  WHERE b.desired_date='".$db->escape($desiredDate)."'
+                    AND b.status NOT IN ('cancelled','Отменена','Отклонена')
+                    AND RIGHT($phoneExpr,10)=RIGHT('$cleanPhoneEsc',10)";
+    $clientResult = $db->query($clientSql);
+    while ($row = $clientResult->fetch_assoc()) {
+        $existingStart = timeToMinutesValue($row['desired_time']);
+        $existingEnd = $existingStart + (int)$row['duration_minutes'];
+        if ($newStartMinutes < $existingEnd && $newEndMinutes > $existingStart) {
+            http_response_code(409);
+            echo json_encode(['success'=>false,'error'=>'У вас уже есть другая запись, которая пересекается с выбранным временем.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
     // Проверяем пересечения по времени у выбранного мастера в этот день
     if (!empty($input['master_id'])) {
         $masterId = (int)$input['master_id'];
@@ -107,6 +128,16 @@ try {
         }
     }
     
+    // Серверная проверка: выбранное время должно присутствовать среди актуальных слотов.
+    if (!empty($input['master_id'])) {
+        $slotsResult = getBookingAvailableSlots($db, (int)$input['master_id'], $desiredDate, (int)$input['service_id'], 0, $phone);
+        if (!in_array($input['desired_time'], $slotsResult['slots'], true)) {
+            http_response_code(409);
+            echo json_encode(['success'=>false,'error'=>'Этот временной слот уже недоступен. Обновите список и выберите другое время.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
     // Сохраняем запись
     $bookingData = [
         'client_name' => $input['client_name'],

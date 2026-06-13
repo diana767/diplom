@@ -53,23 +53,26 @@
         const sender = byId('certificateSender').value.trim();
         const phone = byId('certificatePhone').value.trim();
         const email = byId('certificateEmail')?.value.trim() || '';
-        const cardNumber = byId('cardNumber').value.trim();
-        const holder = byId('cardHolder').value.trim();
-        const expiry = byId('cardExpiry').value.trim();
-        const cvv = byId('cardCvv').value.trim();
+        const cardNumberRaw = byId('cardNumber')?.value.trim() || '4111 1111 1111 1111';
+        const holder = byId('cardHolder')?.value.trim() || 'DEMO CLIENT';
+        const expiryRaw = byId('cardExpiry')?.value.trim() || '12/30';
+        const cvvRaw = byId('cardCvv')?.value.trim() || '123';
 
         if (amount < 500) throw new Error('Минимальная сумма сертификата — 500 ₽');
         if (amount > 200000) throw new Error('Максимальная сумма сертификата — 200 000 ₽');
-        if (!/^[А-Яа-яЁёA-Za-z\s-]{2,60}$/.test(recipient)) throw new Error('Укажите корректное имя получателя');
-        if (sender && !/^[А-Яа-яЁёA-Za-z\s-]{2,60}$/.test(sender)) throw new Error('Укажите корректное имя отправителя');
+        if (!/^[А-Яа-яЁёA-Za-z\s-]{2,80}$/.test(recipient)) throw new Error('Укажите корректное имя получателя');
+        if (sender && !/^[А-Яа-яЁёA-Za-z\s-]{2,80}$/.test(sender)) throw new Error('Укажите корректное имя отправителя');
         if (!validPhone(phone)) throw new Error('Укажите корректный номер телефона');
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Укажите корректный email');
-        if (!luhnCheck(cardNumber)) throw new Error('Введите корректный номер карты. Для теста можно использовать 4111 1111 1111 1111');
-        if (!/^[A-Za-zА-Яа-яЁё\s-]{2,80}$/.test(holder)) throw new Error('Укажите имя держателя карты');
-        const exp = parseExpiry(expiry);
-        if (!exp) throw new Error('Укажите корректный срок действия карты в формате MM/YY');
-        if (!/^\d{3,4}$/.test(cvv)) throw new Error('CVV должен содержать 3 или 4 цифры');
-        return { amount, recipient, sender, phone, email, cardNumber, holder, exp, cvv };
+
+        // Учебная демо-оплата: не блокируем оформление из-за Luhn/банковской проверки.
+        // Проверяем только базовый формат, чтобы сертификаты стабильно создавались в учебном проекте.
+        const cardDigits = cleanDigits(cardNumberRaw) || '4111111111111111';
+        if (cardDigits.length < 12 || cardDigits.length > 19) throw new Error('Номер демо-карты должен содержать от 12 до 19 цифр');
+        const exp = parseExpiry(expiryRaw) || { month: 12, year: 2030 };
+        const cvv = cleanDigits(cvvRaw) || '123';
+        if (cvv.length < 3 || cvv.length > 4) throw new Error('CVV должен содержать 3 или 4 цифры');
+        return { amount, recipient, sender, phone, email, cardNumber: cardDigits, holder, exp, cvv };
     }
 
     function buildSvg(cert) {
@@ -121,6 +124,10 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         ['certificateAmount','certificateRecipient','certificateSender','certificateMessage'].forEach(id => byId(id)?.addEventListener('input', syncPreview));
+        if (byId('cardNumber') && !byId('cardNumber').value) byId('cardNumber').value = '4111 1111 1111 1111';
+        if (byId('cardHolder') && !byId('cardHolder').value) byId('cardHolder').value = 'DEMO CLIENT';
+        if (byId('cardExpiry') && !byId('cardExpiry').value) byId('cardExpiry').value = '12/30';
+        if (byId('cardCvv') && !byId('cardCvv').value) byId('cardCvv').value = '123';
         byId('cardNumber')?.addEventListener('input', e => { e.target.value = formatCardNumber(e.target.value); });
         byId('cardExpiry')?.addEventListener('input', e => { e.target.value = formatExpiry(e.target.value); });
         byId('cardCvv')?.addEventListener('input', e => { e.target.value = cleanDigits(e.target.value).slice(0, 4); });

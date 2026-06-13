@@ -71,23 +71,23 @@
 
             <div class="demo-payment-block">
                 <h3><i class="fas fa-credit-card"></i> Демонстрационная оплата</h3>
-                <p>Это учебный режим: деньги не списываются, полные данные карты не сохраняются. В базе хранится только последние 4 цифры.</p>
+                <p>Это учебный режим: деньги не списываются. Полные данные карты не сохраняются, в базе остаются только последние 4 цифры. Поля уже заполнены тестовыми данными.</p>
                 <div class="form-group">
                     <label>Номер карты *</label>
-                    <input type="text" id="cardNumber" class="form-control" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="23" required>
+                    <input type="text" id="cardNumber" class="form-control" inputmode="numeric" autocomplete="cc-number" placeholder="4111 1111 1111 1111" value="4111 1111 1111 1111" maxlength="23">
                 </div>
                 <div class="form-group">
                     <label>Имя держателя карты *</label>
-                    <input type="text" id="cardHolder" class="form-control" autocomplete="cc-name" placeholder="IVAN IVANOV" required>
+                    <input type="text" id="cardHolder" class="form-control" autocomplete="cc-name" placeholder="DEMO CLIENT" value="DEMO CLIENT">
                 </div>
                 <div class="payment-row">
                     <div class="form-group">
                         <label>Срок действия *</label>
-                        <input type="text" id="cardExpiry" class="form-control" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5" required>
+                        <input type="text" id="cardExpiry" class="form-control" inputmode="numeric" autocomplete="cc-exp" placeholder="12/30" value="12/30" maxlength="5">
                     </div>
                     <div class="form-group">
                         <label>CVV *</label>
-                        <input type="password" id="cardCvv" class="form-control" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" required>
+                        <input type="password" id="cardCvv" class="form-control" inputmode="numeric" autocomplete="cc-csc" placeholder="123" value="123" maxlength="4">
                     </div>
                 </div>
             </div>

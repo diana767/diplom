@@ -1230,3 +1230,374 @@ AdminPanel.prototype.loadReports = async function() {
         }
     };
 })();
+
+// ===== FIX 2026-06-08: перенос по слотам, фильтр мастеров, статусы чата, удаление чатов =====
+(function() {
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[ch]));
+    const money = (value) => `${Number(value || 0).toLocaleString('ru-RU')} ₽`;
+
+    function todayIso() {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 10);
+    }
+
+    function statusInfo(status) {
+        if (['confirmed','Подтверждена','Подтверждено'].includes(status)) return ['status-confirmed', 'Подтверждена'];
+        if (['completed','Завершена','Завершено'].includes(status)) return ['status-confirmed', 'Завершена'];
+        if (['cancelled','Отменена','Отклонена'].includes(status)) return ['status-cancelled', 'Отменена'];
+        if (status === 'transfer_proposed') return ['status-new', 'Предложен перенос'];
+        return ['status-new', 'Новая'];
+    }
+
+    AdminPanel.prototype.loadDashboard = async function() {
+        try {
+            const response = await salonAPI.getStats();
+            if (!response.success) throw new Error(response.error || 'Не удалось загрузить статистику');
+            const stats = response.stats || {};
+            document.getElementById('statNewBookings').textContent = stats.new_bookings || 0;
+            document.getElementById('statTotalServices').textContent = stats.total_services || 0;
+            document.getElementById('statActiveMasters').textContent = stats.active_masters || 0;
+            document.getElementById('statTodayBookings').textContent = stats.today_bookings || 0;
+
+            const dashboard = document.getElementById('dashboard');
+            let note = document.getElementById('dashboardFinanceNote');
+            if (dashboard && !note) {
+                note = document.createElement('div');
+                note.id = 'dashboardFinanceNote';
+                note.className = 'report-note';
+                note.style.marginTop = '1rem';
+                const btnBlock = dashboard.querySelector('div[style*="text-align: center"]');
+                dashboard.insertBefore(note, btnBlock || null);
+            }
+            if (note) {
+                note.innerHTML = `
+                    <strong>Сверка с финансовым отчётом:</strong>
+                    всего записей — ${Number(stats.total_bookings || 0)},
+                    подтверждено/завершено — ${Number(stats.confirmed_bookings || 0)},
+                    предложен перенос — ${Number(stats.transfer_proposed_bookings || 0)},
+                    выручка — ${money(stats.total_revenue)}.
+                    <br><small>Доход считается только по подтверждённым и завершённым записям, поэтому новые заявки не прибавляются к выручке.</small>`;
+            }
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            showNotification(error.message || 'Ошибка загрузки дашборда', 'error');
+        }
+    };
+
+    AdminPanel.prototype.renderBookings = function(bookings) {
+        const container = document.getElementById('bookingsTable');
+        if (!container) return;
+        if (!bookings || bookings.length === 0) {
+            container.innerHTML = `<div style="text-align:center;padding:3rem;color:#667171;"><i class="fas fa-calendar-times fa-3x"></i><p>Нет записей</p></div>`;
+            return;
+        }
+        let html = `<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>№</th><th>Клиент</th><th>Услуга</th><th>Мастер</th><th>Дата</th><th>Время</th><th>Статус</th><th>Действия</th></tr></thead><tbody>`;
+        bookings.forEach(booking => {
+            const [cls, text] = statusInfo(booking.status);
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(booking.booking_number || ('B' + String(booking.id).padStart(6, '0')))}</strong></td>
+                    <td><div><strong>${escapeHtml(booking.client_name)}</strong></div><small>${escapeHtml(booking.formatted_phone || booking.phone)}</small>${booking.comment ? `<br><small><em>${escapeHtml(booking.comment)}</em></small>` : ''}</td>
+                    <td>${escapeHtml(booking.service_name || 'Неизвестно')}</td>
+                    <td>${escapeHtml(booking.master_name || 'Любой')}</td>
+                    <td>${escapeHtml(booking.formatted_date || booking.desired_date)}</td>
+                    <td>${escapeHtml(booking.desired_time)}</td>
+                    <td><span class="status ${cls}">${text}</span></td>
+                    <td><div class="table-actions">
+                        ${booking.status === 'new' ? `
+                            <button class="table-btn btn-confirm" title="Подтвердить" onclick="adminPanel.confirmBooking(${Number(booking.id)})"><i class="fas fa-check"></i></button>
+                            <button class="table-btn btn-cancel" title="Отменить" onclick="adminPanel.cancelBooking(${Number(booking.id)})"><i class="fas fa-times"></i></button>` : ''}
+                        <button class="table-btn btn-notify" title="Уведомление" onclick="adminPanel.openNotificationModal(${Number(booking.id)})"><i class="fas fa-bell"></i></button>
+                        <button class="table-btn btn-view" title="Предложить перенос" onclick="adminPanel.openTransferModal(${Number(booking.id)})"><i class="fas fa-calendar-alt"></i></button>
+                    </div></td>
+                </tr>`;
+        });
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    };
+
+    AdminPanel.prototype.loadReports = async function() {
+        const cards = document.getElementById('reportCards');
+        const table = document.getElementById('reportsTable');
+        if (!cards || !table) return;
+        cards.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Загрузка отчёта...</div>';
+        table.innerHTML = '';
+        try {
+            const response = await salonAPI.getFinancialReport();
+            if (!response || response.success !== true) throw new Error(response?.error || 'Не удалось загрузить финансовые отчёты');
+            const s = response.summary || {};
+            cards.innerHTML = `
+                <div class="stat-card"><i class="fas fa-calendar-check" style="font-size:2rem;color:var(--primary);"></i><div class="stat-value">${Number(s.all_count || 0)}</div><p>Всего записей</p></div>
+                <div class="stat-card"><i class="fas fa-clock" style="font-size:2rem;color:var(--primary);"></i><div class="stat-value">${Number(s.new_count || 0)}</div><p>Новых заявок</p></div>
+                <div class="stat-card"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--primary);"></i><div class="stat-value">${Number(s.confirmed_count || 0)}</div><p>Подтверждено/завершено</p></div>
+                <div class="stat-card"><i class="fas fa-ruble-sign" style="font-size:2rem;color:var(--primary);"></i><div class="stat-value">${money(s.total_revenue)}</div><p>Фактическая выручка</p></div>`;
+            const monthly = response.monthly || [];
+            if (!monthly.length) {
+                table.innerHTML = '<div class="empty-state">Пока нет данных для помесячного отчёта.</div>';
+                return;
+            }
+            table.innerHTML = `
+                <div class="report-note">Выручка считается только по подтверждённым и завершённым записям. Новые заявки и предложенные переносы показываются в количестве, но не входят в доход.</div>
+                <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Месяц</th><th>Всего</th><th>Новые</th><th>Переносы</th><th>Подтверждено</th><th>Отменено</th><th>Выручка</th></tr></thead><tbody>
+                    ${monthly.map(row => `<tr><td><strong>${escapeHtml(row.period || '—')}</strong></td><td>${Number(row.bookings_count || 0)}</td><td>${Number(row.new_count || 0)}</td><td>${Number(row.transfer_count || 0)}</td><td>${Number(row.confirmed_count || 0)}</td><td>${Number(row.cancelled_count || 0)}</td><td class="report-positive">${money(row.revenue)}</td></tr>`).join('')}
+                </tbody></table></div>`;
+        } catch (error) {
+            console.error(error);
+            cards.innerHTML = `<div class="empty-state">${escapeHtml(error.message || 'Не удалось загрузить финансовые отчёты')}</div>`;
+        }
+    };
+
+    AdminPanel.prototype.loadMessages = async function() {
+        const container = document.getElementById('messagesTable');
+        if (!container) return;
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Загрузка диалогов...</div>';
+        try {
+            const response = await salonAPI.getContactMessages();
+            if (!response.success) throw new Error(response.error || 'Не удалось загрузить сообщения');
+            const messages = response.data || [];
+            if (!messages.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><br>Сообщений пока нет.</div>';
+                return;
+            }
+            container.innerHTML = `
+                <div class="admin-chat-layout">
+                    <div class="admin-chat-list">
+                        ${messages.map(item => {
+                            const answered = String(item.reply_status || '') === 'answered';
+                            return `<div class="admin-chat-thread-wrap ${answered ? 'answered' : 'unanswered'}">
+                                <button class="admin-chat-thread" onclick="adminPanel.openChat(${Number(item.id)})">
+                                    <span><strong>${escapeHtml(item.name)}</strong> ${Number(item.unread_count || 0) > 0 ? `<b class="chat-badge">${Number(item.unread_count)}</b>` : ''}</span>
+                                    <small>${escapeHtml(item.phone || '')} · ${escapeHtml(item.latest_at_formatted || item.created_at_formatted || '')}</small>
+                                    <em>${escapeHtml(item.latest_message || item.message || '')}</em>
+                                    <b class="chat-status ${answered ? 'answered' : 'unanswered'}">${answered ? 'Отвечено' : 'Не отвечено'}</b>
+                                </button>
+                                <button class="chat-delete-thread" title="Удалить диалог" onclick="adminPanel.deleteChatDialog(${Number(item.id)})"><i class="fas fa-trash"></i></button>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div class="admin-chat-window" id="adminChatWindow"><div class="chat-empty"><i class="fas fa-comments"></i><br>Выберите диалог слева</div></div>
+                </div>`;
+        } catch (error) {
+            container.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+    };
+
+    AdminPanel.prototype.openChat = async function(contactId) {
+        const win = document.getElementById('adminChatWindow');
+        if (!win) return;
+        win.innerHTML = '<div class="chat-empty"><i class="fas fa-spinner fa-spin"></i> Загрузка переписки...</div>';
+        try {
+            const response = await salonAPI.getAdminChatMessages(contactId);
+            if (!response.success) throw new Error(response.error || 'Не удалось открыть чат');
+            const contact = response.contact || {};
+            const msgs = response.data || [];
+            win.innerHTML = `
+                <div class="admin-chat-head">
+                    <div><strong>${escapeHtml(contact.name || 'Клиент')}</strong><br><small>${escapeHtml(contact.phone || '')}${contact.email ? ' · ' + escapeHtml(contact.email) : ''}</small></div>
+                    <button class="table-btn btn-cancel" title="Удалить весь диалог" onclick="adminPanel.deleteChatDialog(${Number(contactId)})"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="admin-chat-messages" id="adminChatMessages">
+                    ${msgs.map(msg => `
+                        <div class="chat-message ${msg.sender_type === 'admin' ? 'admin' : 'client'}">
+                            <div class="chat-message-meta">
+                                <span>${msg.sender_type === 'admin' ? 'Администратор' : escapeHtml(msg.sender_name || contact.name || 'Клиент')} · ${escapeHtml(msg.created_at_formatted || '')}</span>
+                                <button class="chat-delete-message" title="Удалить сообщение" onclick="adminPanel.deleteChatMessage(${Number(msg.id)}, ${Number(contactId)})"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <div class="chat-message-text">${escapeHtml(msg.message)}</div>
+                        </div>`).join('') || '<div class="chat-empty">В диалоге пока нет сообщений.</div>'}
+                </div>
+                <div class="admin-chat-send">
+                    <input id="adminChatInput" class="form-control" type="text" placeholder="Ответить клиенту...">
+                    <button class="btn" onclick="adminPanel.sendChatReply(${Number(contactId)})"><i class="fas fa-paper-plane"></i> Отправить</button>
+                </div>`;
+            const list = document.getElementById('adminChatMessages');
+            if (list) list.scrollTop = list.scrollHeight;
+            document.getElementById('adminChatInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.sendChatReply(contactId); });
+        } catch (error) {
+            win.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+    };
+
+    AdminPanel.prototype.sendChatReply = async function(contactId) {
+        const input = document.getElementById('adminChatInput');
+        const message = input?.value.trim();
+        if (!message) return;
+        try {
+            const response = await salonAPI.sendAdminChatMessage(contactId, message);
+            if (!response.success) throw new Error(response.error || 'Не удалось отправить ответ');
+            input.value = '';
+            await this.loadMessages();
+            await this.openChat(contactId);
+            showNotification('Ответ отправлен', 'success');
+        } catch (error) {
+            showNotification(error.message, 'error');
+        }
+    };
+
+    AdminPanel.prototype.deleteChatMessage = async function(messageId, contactId) {
+        if (!confirm('Удалить это сообщение?')) return;
+        try {
+            const response = await salonAPI.deleteAdminChatMessage(messageId);
+            if (!response.success) throw new Error(response.error || 'Не удалось удалить сообщение');
+            await this.loadMessages();
+            await this.openChat(contactId);
+            showNotification('Сообщение удалено', 'success');
+        } catch (error) {
+            showNotification(error.message, 'error');
+        }
+    };
+
+    AdminPanel.prototype.deleteChatDialog = async function(contactId) {
+        if (!confirm('Удалить весь диалог с клиентом? Это действие нельзя отменить.')) return;
+        try {
+            const response = await salonAPI.deleteAdminChatDialog(contactId);
+            if (!response.success) throw new Error(response.error || 'Не удалось удалить диалог');
+            await this.loadMessages();
+            showNotification('Диалог удалён', 'success');
+        } catch (error) {
+            showNotification(error.message, 'error');
+        }
+    };
+
+    AdminPanel.prototype.ensureTransferModal = function() {
+        if (document.getElementById('transferModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'transferModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:820px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Перенос записи</h3>
+                    <button class="close-modal" onclick="document.getElementById('transferModal').classList.remove('active')">&times;</button>
+                </div>
+                <div class="modal-body" id="transferModalBody"></div>
+            </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+    };
+
+    AdminPanel.prototype.openTransferModal = async function(bookingId, excludeMasterId = null) {
+        this.ensureTransferModal();
+        const modal = document.getElementById('transferModal');
+        const body = document.getElementById('transferModalBody');
+        modal.classList.add('active');
+        body.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Подготовка формы переноса...</div>';
+        try {
+            const response = await salonAPI.getBookingTransferOptions(bookingId, excludeMasterId);
+            if (!response.success) throw new Error(response.error || 'Не удалось подготовить перенос');
+            const booking = response.booking || {};
+            const masters = response.masters || [];
+            const minDate = todayIso();
+            let defaultDate = booking.desired_date || minDate;
+            if (defaultDate < minDate) defaultDate = minDate;
+
+            if (!masters.length) {
+                body.innerHTML = `<div class="empty-state">Для услуги «${escapeHtml(booking.service_name || '')}» нет активных мастеров подходящего направления. Проверьте связи master_services в базе.</div>`;
+                return;
+            }
+
+            body.innerHTML = `
+                <form id="transferForm">
+                    <input type="hidden" id="transferBookingId" value="${Number(bookingId)}">
+                    <input type="hidden" id="transferServiceId" value="${Number(booking.service_id || 0)}">
+                    <div class="report-note" style="margin-bottom:1rem;">
+                        <strong>${escapeHtml(booking.booking_number || ('B' + String(bookingId).padStart(6, '0')))}</strong> ·
+                        ${escapeHtml(booking.client_name || '')} · ${escapeHtml(booking.service_name || '')}<br>
+                        Было: ${escapeHtml(booking.formatted_date || booking.desired_date || '')} в ${escapeHtml(booking.desired_time || '')}, мастер: ${escapeHtml(booking.current_master_name || 'любой')}.
+                    </div>
+                    <div class="form-group">
+                        <label>Новый мастер *</label>
+                        <select id="transferMasterId" class="form-control" required>
+                            <option value="">Выберите мастера подходящего направления</option>
+                            ${masters.map(m => `<option value="${Number(m.id)}">${escapeHtml(m.name)} — ${escapeHtml(m.specialization || '')}</option>`).join('')}
+                        </select>
+                        <small>Список уже отфильтрован по услуге: например, для парикмахерской услуги будут только мастера, которые её выполняют.</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Новая дата *</label>
+                            <input type="date" id="transferDate" class="form-control" min="${minDate}" value="${escapeHtml(defaultDate)}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Свободный временной слот *</label>
+                            <select id="transferTimeSlot" class="form-control" required disabled>
+                                <option value="">Сначала выберите мастера</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="transferSlotsInfo" class="report-note" style="margin:.5rem 0 1rem;">Слот будет проверен по расписанию мастера и занятым записям.</div>
+                    <div class="form-group"><label>Комментарий клиенту</label><textarea id="transferMessage" class="form-control" rows="3" placeholder="Например: мастер заболел, предлагаем удобный перенос..."></textarea></div>
+                    <div style="display:flex;gap:1rem;margin-top:1rem;"><button type="submit" class="btn" style="flex:1;"><i class="fas fa-paper-plane"></i> Отправить предложение</button><button type="button" class="btn" style="background:#667171;flex:1;" onclick="document.getElementById('transferModal').classList.remove('active')">Отмена</button></div>
+                </form>`;
+            document.getElementById('transferMasterId').addEventListener('change', () => this.loadTransferSlots());
+            document.getElementById('transferDate').addEventListener('change', () => this.loadTransferSlots());
+            document.getElementById('transferForm').addEventListener('submit', (e) => { e.preventDefault(); this.submitTransferProposal(); });
+        } catch (error) {
+            body.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+    };
+
+    AdminPanel.prototype.loadTransferSlots = async function() {
+        const bookingId = Number(document.getElementById('transferBookingId')?.value || 0);
+        const serviceId = Number(document.getElementById('transferServiceId')?.value || 0);
+        const masterId = document.getElementById('transferMasterId')?.value;
+        const date = document.getElementById('transferDate')?.value;
+        const select = document.getElementById('transferTimeSlot');
+        const info = document.getElementById('transferSlotsInfo');
+        if (!select || !info) return;
+        if (!masterId || !date) {
+            select.innerHTML = '<option value="">Выберите мастера и дату</option>';
+            select.disabled = true;
+            info.textContent = 'Слот будет проверен по расписанию мастера и занятым записям.';
+            return;
+        }
+        select.disabled = true;
+        select.innerHTML = '<option value="">Загрузка слотов...</option>';
+        info.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверяем свободные слоты...';
+        try {
+            const response = await salonAPI.getAvailableTimeSlots(masterId, date, serviceId, bookingId);
+            if (!response.success) throw new Error(response.error || 'Не удалось получить слоты');
+            const slots = response.available_slots || [];
+            if (!slots.length) {
+                select.innerHTML = '<option value="">Свободных слотов нет</option>';
+                select.disabled = true;
+                info.textContent = 'На выбранную дату у мастера нет свободного времени для длительности этой услуги.';
+                return;
+            }
+            select.innerHTML = '<option value="">Выберите время</option>' + slots.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            select.disabled = false;
+            info.textContent = `Найдено свободных слотов: ${slots.length}. Длительность услуги: ${Number(response.duration_minutes || 60)} мин.`;
+        } catch (error) {
+            select.innerHTML = '<option value="">Ошибка загрузки</option>';
+            select.disabled = true;
+            info.textContent = error.message;
+        }
+    };
+
+    AdminPanel.prototype.submitTransferProposal = async function() {
+        const payload = {
+            booking_id: Number(document.getElementById('transferBookingId').value),
+            new_master_id: document.getElementById('transferMasterId').value,
+            new_date: document.getElementById('transferDate').value,
+            new_time: document.getElementById('transferTimeSlot').value,
+            message: document.getElementById('transferMessage').value.trim()
+        };
+        if (!payload.new_master_id || !payload.new_date || !payload.new_time) {
+            showNotification('Выберите мастера, дату и свободный слот', 'error');
+            return;
+        }
+        try {
+            const response = await salonAPI.proposeBookingTransfer(payload);
+            if (!response.success) throw new Error(response.error || 'Не удалось отправить предложение');
+            showNotification('Предложение переноса отправлено клиенту', 'success');
+            document.getElementById('transferModal').classList.remove('active');
+            this.loadBookings();
+            this.loadMasters();
+            this.loadDashboard();
+        } catch (error) {
+            showNotification(error.message, 'error');
+            this.loadTransferSlots();
+        }
+    };
+})();

@@ -66,15 +66,23 @@ class BeautySalonAPI {
     }
 
     // Проверка доступного времени
-    async getAvailableTimeSlots(masterId, date, serviceId) {
+    async getAvailableTimeSlots(masterId, date, serviceId, excludeBookingId = null, clientPhone = null) {
         let url = `php/api/get_available_times.php?date=${encodeURIComponent(date)}`;
         
         if (masterId && masterId !== 'any') {
-            url += `&master_id=${masterId}`;
+            url += `&master_id=${encodeURIComponent(masterId)}`;
         }
         
         if (serviceId) {
-            url += `&service_id=${serviceId}`;
+            url += `&service_id=${encodeURIComponent(serviceId)}`;
+        }
+
+        if (excludeBookingId) {
+            url += `&exclude_booking_id=${encodeURIComponent(excludeBookingId)}`;
+        }
+
+        if (clientPhone) {
+            url += `&client_phone=${encodeURIComponent(clientPhone)}`;
         }
         
         return await this.request(url);
@@ -91,6 +99,17 @@ class BeautySalonAPI {
     // Поиск записей клиента
     async getClientBookings(phone) {
         return await this.request(`php/api/get_client_bookings.php?phone=${encodeURIComponent(phone)}`);
+    }
+
+    async getClientProfile(phone) {
+        return await this.request(`php/api/get_client_profile.php?phone=${encodeURIComponent(phone)}`);
+    }
+
+    async updateClientProfile(profileData) {
+        return await this.request('php/api/update_client_profile.php', {
+            method: 'POST',
+            body: JSON.stringify(profileData)
+        });
     }
 
     // Отмена записи клиентом
@@ -353,6 +372,17 @@ BeautySalonAPI.prototype.proposeBookingTransfer = function(payload) {
 };
 BeautySalonAPI.prototype.respondTransferRequest = function(payload) {
     return this.request('php/api/respond_transfer_request.php', { method: 'POST', body: JSON.stringify(payload) });
+};
+BeautySalonAPI.prototype.getBookingTransferOptions = function(bookingId, excludeMasterId = null) {
+    let url = `php/admin/get_booking_transfer_options.php?booking_id=${encodeURIComponent(bookingId)}`;
+    if (excludeMasterId) url += `&exclude_master_id=${encodeURIComponent(excludeMasterId)}`;
+    return this.request(url);
+};
+BeautySalonAPI.prototype.deleteAdminChatMessage = function(messageId) {
+    return this.request('php/admin/delete_chat_message.php', { method: 'POST', body: JSON.stringify({ message_id: messageId }) });
+};
+BeautySalonAPI.prototype.deleteAdminChatDialog = function(contactId) {
+    return this.request('php/admin/delete_chat_dialog.php', { method: 'POST', body: JSON.stringify({ contact_id: contactId }) });
 };
 
 

@@ -1,6 +1,7 @@
 <?php
 require_once '../database.php';
 require_once '../schema_additions.php';
+require_once '../booking_helpers.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
@@ -39,7 +40,13 @@ try {
     $db->beginTransaction();
     try {
         if ($action === 'accept') {
-            $db->query("UPDATE bookings SET master_id = ".(!empty($tr['proposed_master_id']) ? (int)$tr['proposed_master_id'] : 'NULL').",
+            $proposedMasterId = !empty($tr['proposed_master_id']) ? (int)$tr['proposed_master_id'] : 0;
+            if ($proposedMasterId <= 0) throw new Exception('В предложении переноса не указан мастер');
+            $slots = getBookingAvailableSlots($db, $proposedMasterId, $tr['proposed_date'], (int)$tr['service_id'], (int)$tr['booking_id']);
+            if (!in_array($tr['proposed_time'], $slots['slots'], true)) {
+                throw new Exception('Пока клиент отвечал, предложенное время стало занято. Свяжитесь с администратором для нового переноса.');
+            }
+            $db->query("UPDATE bookings SET master_id = $proposedMasterId,
                         desired_date = '".$db->escape($tr['proposed_date'])."',
                         desired_time = '".$db->escape($tr['proposed_time'])."',
                         status = 'confirmed', updated_at = NOW()

@@ -20,6 +20,12 @@ try {
     if (!$contactRes || $contactRes->num_rows === 0) throw new Exception('Диалог не найден');
     $contact = $contactRes->fetch_assoc();
 
+    $cnt = $db->query("SELECT COUNT(*) AS c FROM chat_messages WHERE contact_message_id = $contactId")->fetch_assoc();
+    if ((int)($cnt['c'] ?? 0) === 0) {
+        $db->query("INSERT INTO chat_messages (contact_message_id, sender_type, sender_name, phone, message, is_read, created_at)
+                    VALUES ($contactId, 'client', '".$db->escape($contact['name'])."', '".$db->escape($contact['phone'])."', '".$db->escape($contact['message'])."', 0, '".$db->escape($contact['created_at'])."')");
+    }
+
     $db->query("UPDATE chat_messages SET is_read = 1 WHERE contact_message_id = $contactId AND sender_type = 'client'");
 
     $res = $db->query("SELECT id, contact_message_id, sender_type, sender_name, message, is_read, created_at,
