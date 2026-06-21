@@ -311,6 +311,7 @@
         }
 
     </style>
+    <link rel="stylesheet" href="css/theme.css?v=20260621-compact-photo-1">
 </head>
 <body>
     <header>
@@ -356,6 +357,9 @@
                 </a></li>
                 <li><a href="#" class="nav-link" data-section="services">
                     <i class="fas fa-scissors"></i> Услуги
+                </a></li>
+                <li><a href="#" class="nav-link" data-section="schedule">
+                    <i class="fas fa-clock"></i> Расписание
                 </a></li>
                 <li><a href="#" class="nav-link" data-section="masters">
                     <i class="fas fa-users"></i> Мастера
@@ -473,6 +477,18 @@
                 </div>
             </div>
             
+            <div id="schedule" class="admin-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap;">
+                    <h2 style="color:#1a1a1a;margin:0;"><i class="fas fa-clock"></i> Расписание всех мастеров</h2>
+                    <button id="refreshScheduleBtn" class="btn"><i class="fas fa-sync-alt"></i> Обновить</button>
+                </div>
+                <div class="schedule-toolbar">
+                    <div class="form-group" style="margin:0;"><label>Дата</label><input type="date" id="scheduleDate" class="form-control"></div>
+                    <div><span class="schedule-slot free">Свободные окна</span></div>
+                </div>
+                <div id="masterSchedule"></div>
+            </div>
+
             <!-- Мастера -->
             <div id="masters" class="admin-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -662,8 +678,9 @@
 
     <!-- Подключаем скрипты -->
     <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/api.js?v=20260621-5"></script>
+    <script src="js/admin.js?v=20260621-6"></script>
+    <script src="js/admin-schedule.js?v=20260621-7"></script>
     <script>
     // Инициализация после загрузки страницы
     document.addEventListener('DOMContentLoaded', async () => {
@@ -678,5 +695,6 @@
     });
     </script>
     <script src="js/validation.js"></script>
+    <script src="js/theme.js"></script>
 </body>
 </html>

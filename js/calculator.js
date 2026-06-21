@@ -299,11 +299,9 @@ class BeautyCalculator {
   }
 }
 
-// Авто-инициализация
+// Авто-инициализация: constructor уже вызывает init(), поэтому повторный init не нужен.
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.querySelector('.calculator-steps')) {
-    const calc = new BeautyCalculator();
-    calc.init();
-    window.beautyCalculator = calc;
+  if (document.querySelector('.calculator-steps') && !window.beautyCalculator) {
+    window.beautyCalculator = new BeautyCalculator();
   }
 });

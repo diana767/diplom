@@ -19,3 +19,22 @@ button {
     width: 100%;
     height: auto;
 }
+
+/* Расписание мастеров: карточки сразу, без экрана загрузки */
+.schedule-master { background:#fff; border:1px solid #f2c7d4; border-radius:24px; padding:22px; margin:0 0 22px; box-shadow:0 12px 32px rgba(154,60,95,.08); }
+.schedule-master-header { display:flex; align-items:center; gap:16px; margin-bottom:18px; }
+.schedule-master-photo { width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #f7d9e2; background:#fff4f7; }
+.schedule-master-header h3 { margin:0 0 4px; color:#4b2432; font-size:1.35rem; }
+.schedule-master-header p { margin:0; color:#8d5e6d; }
+.schedule-service { background:#fff8fa; border:1px solid #f3d6df; border-radius:18px; padding:16px; margin-top:14px; }
+.schedule-service-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.schedule-service-head > div { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.schedule-service-head strong { color:#4b2432; }
+.schedule-service-head span, .schedule-count { color:#8d5e6d; }
+.schedule-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.schedule-slot { display:flex; flex-direction:column; gap:4px; padding:11px 13px; border-radius:13px; }
+.schedule-slot.free { background:#eefbf5; border:1px solid #bde7d2; color:#167a57; }
+.schedule-slot.busy { background:#fff0f3; border:1px solid #f1bcc9; color:#b43259; }
+.schedule-no-slots { color:#946b78; padding:10px 2px; }
+body.light-theme .schedule-master, body[data-theme="light"] .schedule-master { background:#fff; }
+.schedule-service{padding:16px 0;border-top:1px solid #f5d7e0}.schedule-service:first-child{border-top:0}.schedule-service-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.schedule-service-head strong{display:block;color:#4b2432}.schedule-service-head span{display:block;color:#9b6878;font-size:.9rem;margin-top:3px}.schedule-busy-block{margin-top:18px;padding-top:16px;border-top:1px dashed #eebdca}.schedule-busy-block h4{margin:0 0 10px;color:#9f3155}.schedule-slot small{font-size:.78rem;opacity:.8}.schedule-no-slots{padding:12px 14px;border-radius:12px;background:#fff6f8;color:#8d5e6d;border:1px dashed #efc6d1}

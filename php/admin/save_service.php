@@ -37,6 +37,13 @@ try {
     $db = new Database();
     
     if ($serviceId) {
+        $lockCheck = $db->query("SELECT COUNT(*) AS cnt FROM bookings WHERE service_id = ".(int)$serviceId." AND status IN ('confirmed','transfer_proposed')");
+        $locked = $lockCheck ? (int)$lockCheck->fetch_assoc()['cnt'] : 0;
+        if ($locked > 0) {
+            http_response_code(409);
+            echo json_encode(['success'=>false,'error'=>'Услугу нельзя редактировать: по ней есть подтверждённая запись'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         // Обновление существующей услуги
         $sql = "UPDATE services SET 
                 name = '" . $db->escape($name) . "',

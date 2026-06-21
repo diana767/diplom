@@ -170,7 +170,9 @@ function getBookingAvailableSlots($db, $masterId, $date, $serviceId = null, $exc
     }
 
     $available = [];
-    $step = 30;
+    // Начала записей идут блоками по длительности выбранной услуги.
+    // Например, для услуги 120 минут: 09:00, 11:00, 13:00, а не каждые 30 минут.
+    $step = max(15, $duration);
     for ($start = (int)$dayConfig['start_minutes']; $start + $duration <= (int)$dayConfig['end_minutes']; $start += $step) {
         $end = $start + $duration;
         $blocked = false;

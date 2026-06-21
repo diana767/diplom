@@ -23,6 +23,11 @@ class BeautySalonAPI {
             config.headers['Content-Type'] = 'application/json';
         }
 
+        const controller = new AbortController();
+        const timeoutMs = Number(options.timeoutMs || 10000);
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        config.signal = options.signal || controller.signal;
+
         try {
             const response = await fetch(url, config);
       
@@ -39,7 +44,12 @@ class BeautySalonAPI {
             return data;
         } catch (error) {
             console.error('API Request failed:', error);
+            if (error?.name === 'AbortError') {
+                throw new Error('Сервер слишком долго не отвечает');
+            }
             throw error;
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
 
@@ -171,6 +181,10 @@ class BeautySalonAPI {
     }
 
     // Получение записей
+    async getMasterSchedule(date) {
+        return await this.request(`php/admin/get_master_schedule.php?date=${encodeURIComponent(date)}&_=${Date.now()}`);
+    }
+
     async getBookings(filters = {}) {
         const params = new URLSearchParams(filters).toString();
         return await this.request(`php/admin/get_bookings.php?${params}`);
@@ -407,4 +421,20 @@ BeautySalonAPI.prototype.uploadMasterPortfolio = function(formData) {
 };
 BeautySalonAPI.prototype.deleteMasterPortfolio = function(id) {
     return this.request('php/admin/delete_master_portfolio.php', { method: 'POST', body: JSON.stringify({ id }) });
+};
+BeautySalonAPI.prototype.getAdminMasterSchedule = async function(date) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    try {
+        return await this.request(`php/admin/get_master_schedule.php?date=${encodeURIComponent(date)}`, {
+            signal: controller.signal
+        });
+    } catch (error) {
+        if (error && error.name === 'AbortError') {
+            throw new Error('Сервер слишком долго отвечает. Проверьте запуск PHP и подключение к MySQL.');
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };

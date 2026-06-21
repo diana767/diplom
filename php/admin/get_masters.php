@@ -13,6 +13,21 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 
 try {
     $db = new Database();
+
+    // Обновляем фотографии мастеров и в уже существующей базе данных.
+    $photoMap = [
+        'Анна Смирнова' => 'master-anna-smirnova.png',
+        'Диана Орлова' => 'master5-new.jpg',
+        'Виктория Соколова' => 'master6-new.webp',
+        'Алина Белова' => 'master7-new.webp',
+        'Юлия Морозова' => 'master8-new.webp',
+        'Полина Волкова' => 'master9-new.webp',
+        'Наталья Ким' => 'master10-new.webp',
+        'София Романова' => 'master11-new.webp'
+    ];
+    foreach ($photoMap as $masterName => $photoFile) {
+        $db->query("UPDATE masters SET photo='".$db->escape($photoFile)."' WHERE name='".$db->escape($masterName)."'");
+    }
     
     // Получаем всех мастеров 
     $sql = "SELECT m.*, 

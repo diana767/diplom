@@ -15,7 +15,7 @@ try {
     $db = new Database();
     
     // Получаем все услуги 
-    $sql = "SELECT * FROM services ORDER BY category, name";
+    $sql = "SELECT s.*, EXISTS(SELECT 1 FROM bookings b WHERE b.service_id=s.id AND b.status IN ('confirmed','transfer_proposed')) AS is_locked FROM services s ORDER BY s.category, s.name";
     $result = $db->query($sql);
     
     $services = [];

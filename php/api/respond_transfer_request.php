@@ -54,9 +54,9 @@ try {
             $status = 'accepted';
             $clientMessage = 'Клиент согласился на перенос записи.';
         } else {
-            $db->query("UPDATE bookings SET status = 'new', updated_at = NOW() WHERE id = ".(int)$tr['booking_id']);
+            $db->query("UPDATE bookings SET status = 'cancelled', updated_at = NOW() WHERE id = ".(int)$tr['booking_id']);
             $status = 'declined';
-            $clientMessage = 'Клиент отказался от предложенного переноса.';
+            $clientMessage = 'Клиент отказался от переноса. Запись автоматически отменена.';
         }
 
         $db->query("UPDATE booking_transfer_requests SET status = '$status', client_response = '".$db->escape($comment)."', responded_at = NOW() WHERE id = $requestId");
@@ -64,7 +64,7 @@ try {
                     VALUES (".(int)$tr['booking_id'].", $requestId, '".$db->escape($tr['client_name'])."', '".$db->escape($phone)."', '".$db->escape($clientMessage)."', 'client_response', NOW())");
 
         $db->commit();
-        echo json_encode(['success' => true, 'message' => $action === 'accept' ? 'Запись перенесена' : 'Ответ отправлен администратору'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['success' => true, 'message' => $action === 'accept' ? 'Запись перенесена' : 'Вы отказались от переноса. Запись отменена'], JSON_UNESCAPED_UNICODE);
     } catch (Throwable $inner) {
         $db->rollback();
         throw $inner;

@@ -1601,3 +1601,154 @@ AdminPanel.prototype.loadReports = async function() {
         }
     };
 })();
+
+// ===== Общее расписание мастеров =====
+(() => {
+  const oldSetup = AdminPanel.prototype.setupEventListeners;
+  AdminPanel.prototype.setupEventListeners = function() {
+    oldSetup.call(this);
+    const date = document.getElementById('scheduleDate');
+    if (date && !date.value) date.value = new Date().toISOString().slice(0, 10);
+    date?.addEventListener('change', () => this.loadSchedule());
+    document.getElementById('refreshScheduleBtn')?.addEventListener('click', () => this.loadSchedule(true));
+  };
+
+  const oldShow = AdminPanel.prototype.showSection;
+  AdminPanel.prototype.showSection = function(id) {
+    oldShow.call(this, id);
+    if (id === 'schedule') this.loadSchedule();
+  };
+
+  const normalizePhoto = (photo) => {
+    const file = String(photo || '').replace(/^.*[\\/]/, '');
+    return file ? `images/${file}` : 'images/master1.jpg';
+  };
+
+  const timeToMinutes = (value) => {
+    const m = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+    return m ? Number(m[1]) * 60 + Number(m[2]) : 0;
+  };
+
+  const minutesToTime = (minutes) => {
+    const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+    const m = (minutes % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  };
+
+  AdminPanel.prototype.renderScheduleShell = function(masters, services, relations) {
+    const box = document.getElementById('masterSchedule');
+    if (!box) return;
+    const activeMasters = (masters || []).filter(m => String(m.is_active) !== '0');
+    if (!activeMasters.length) {
+      box.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Активные мастера не найдены</p></div>';
+      return;
+    }
+    const serviceById = Object.fromEntries((services || []).filter(s => String(s.is_active) !== '0').map(s => [String(s.id), s]));
+    box.innerHTML = activeMasters.map(master => {
+      const ids = Array.isArray(relations?.[String(master.id)]) ? relations[String(master.id)] : [];
+      const masterServices = ids.map(id => serviceById[String(id)]).filter(Boolean);
+      return `<section class="schedule-master" data-master-id="${Number(master.id)}">
+        <div class="schedule-master-header">
+          <img class="schedule-master-photo" src="${normalizePhoto(master.photo)}" alt="${escapeHtml(master.name || 'Мастер')}" onerror="this.src='images/master1.jpg'">
+          <div><h3>${escapeHtml(master.name || 'Мастер')}</h3><p>${escapeHtml(master.specialization || '')}</p></div>
+        </div>
+        <div class="schedule-services">
+          ${masterServices.length ? masterServices.map(service => `<div class="schedule-service" data-master-id="${Number(master.id)}" data-service-id="${Number(service.id)}">
+            <div class="schedule-service-head"><div><strong>${escapeHtml(service.name || 'Услуга')}</strong><span>${Number(service.duration_minutes || 60)} мин</span></div></div>
+            <div class="schedule-grid" data-slots-for="${Number(master.id)}-${Number(service.id)}"></div>
+          </div>`).join('') : '<div class="schedule-no-slots">У мастера не назначены услуги</div>'}
+        </div>
+      </section>`;
+    }).join('');
+  };
+
+  AdminPanel.prototype.fillServiceSlots = function(masterId, service, response) {
+    const grid = document.querySelector(`[data-slots-for="${Number(masterId)}-${Number(service.id)}"]`);
+    if (!grid) return;
+    const starts = Array.isArray(response?.available_slots) ? response.available_slots : [];
+    const duration = Math.max(15, Number(response?.duration_minutes || service.duration_minutes || 60));
+    if (!starts.length) {
+      grid.innerHTML = '<div class="schedule-no-slots">Свободных окон нет</div>';
+      return;
+    }
+    grid.innerHTML = starts.map(start => {
+      const end = minutesToTime(timeToMinutes(start) + duration);
+      return `<div class="schedule-slot free"><strong>${escapeHtml(start)}–${escapeHtml(end)}</strong><span>Свободно</span></div>`;
+    }).join('');
+  };
+
+  AdminPanel.prototype.loadSchedule = async function(force = false) {
+    const box = document.getElementById('masterSchedule');
+    if (!box) return;
+    const dateInput = document.getElementById('scheduleDate');
+    const date = dateInput?.value || new Date().toISOString().slice(0, 10);
+    if (dateInput && !dateInput.value) dateInput.value = date;
+    const refreshButton = document.getElementById('refreshScheduleBtn');
+    if (refreshButton) refreshButton.disabled = true;
+
+    try {
+      const cacheKey = 'adminScheduleBaseV2';
+      if (!force && !box.children.length) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+          if (cached?.masters && cached?.services && cached?.relations) {
+            this.renderScheduleShell(cached.masters, cached.services, cached.relations);
+          }
+        } catch (_) {}
+      }
+
+      const [mastersResponse, servicesResponse, relationsResponse] = await Promise.all([
+        salonAPI.getMastersAdmin(),
+        salonAPI.getServicesAdmin(),
+        salonAPI.getMasterServices()
+      ]);
+      if (!mastersResponse?.success) throw new Error(mastersResponse?.error || 'Не удалось получить мастеров');
+      if (!servicesResponse?.success) throw new Error(servicesResponse?.error || 'Не удалось получить услуги');
+      const masters = mastersResponse.data || [];
+      const services = servicesResponse.data || [];
+      const relations = relationsResponse?.success ? (relationsResponse.data || {}) : {};
+      this.renderScheduleShell(masters, services, relations);
+      localStorage.setItem(cacheKey, JSON.stringify({masters, services, relations}));
+
+      const serviceById = Object.fromEntries(services.map(s => [String(s.id), s]));
+      const tasks = [];
+      masters.filter(m => String(m.is_active) !== '0').forEach(master => {
+        const ids = Array.isArray(relations[String(master.id)]) ? relations[String(master.id)] : [];
+        ids.forEach(serviceId => {
+          const service = serviceById[String(serviceId)];
+          if (!service || String(service.is_active) === '0') return;
+          tasks.push(
+            salonAPI.getAvailableTimeSlots(master.id, date, service.id)
+              .then(response => this.fillServiceSlots(master.id, service, response))
+              .catch(() => {
+                const grid = document.querySelector(`[data-slots-for="${Number(master.id)}-${Number(service.id)}"]`);
+                if (grid) grid.innerHTML = '<div class="schedule-no-slots">Не удалось получить окна</div>';
+              })
+          );
+        });
+      });
+      await Promise.allSettled(tasks);
+    } catch (error) {
+      console.error('Schedule loading error:', error);
+      if (!box.children.length) {
+        box.innerHTML = `<div class="empty-state schedule-error"><i class="fas fa-exclamation-triangle"></i><p>${escapeHtml(error?.message || 'Не удалось открыть расписание')}</p><button type="button" class="btn" id="retryScheduleBtn"><i class="fas fa-redo"></i> Повторить</button></div>`;
+        document.getElementById('retryScheduleBtn')?.addEventListener('click', () => this.loadSchedule(true));
+      }
+    } finally {
+      if (refreshButton) refreshButton.disabled = false;
+    }
+  };
+
+  const oldRender=AdminPanel.prototype.renderServices;
+  AdminPanel.prototype.renderServices=function(services){
+    oldRender.call(this,services);
+    (services||[]).forEach(s=>{
+      if(!Number(s.is_locked)) return;
+      document.querySelectorAll(`button[onclick*="editService(${s.id})"],button[onclick*="deleteService(${s.id})"]`).forEach(b=>{
+        b.disabled=true; b.classList.add('service-locked'); b.title='Есть подтверждённая запись — редактирование запрещено';
+      });
+      const row=[...document.querySelectorAll('#servicesTable tr')].find(tr=>tr.textContent.includes(s.name));
+      if(row){ const cell=row.querySelector('td:nth-child(2)'); if(cell) cell.insertAdjacentHTML('beforeend','<div class="lock-note"><i class="fas fa-lock"></i> Есть подтверждённая запись</div>'); }
+    });
+  };
+})();
